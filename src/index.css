@@ -2,41 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Ultimate Music Player Design System - Dark theme with vibrant accents */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Music Player Theme - Dark base with purple/blue accents */
+    --background: 230 25% 8%;
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 230 20% 12%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 230 20% 12%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 260 100% 65%;
+    --primary-foreground: 230 25% 8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 230 15% 18%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 230 15% 15%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 280 100% 70%;
+    --accent-foreground: 230 25% 8%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 230 15% 20%;
+    --input: 230 15% 18%;
+    --ring: 260 100% 65%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    /* Music Player Specific Colors */
+    --player-bg: 230 25% 8%;
+    --player-surface: 230 20% 12%;
+    --player-surface-elevated: 230 15% 18%;
+    --player-accent: 260 100% 65%;
+    --player-accent-hover: 260 100% 75%;
+    --player-success: 120 100% 50%;
+    --player-warning: 45 100% 60%;
+    
+    /* Gradients for visual appeal */
+    --gradient-primary: linear-gradient(135deg, hsl(260 100% 65%), hsl(280 100% 70%));
+    --gradient-secondary: linear-gradient(135deg, hsl(230 20% 12%), hsl(230 15% 18%));
+    --gradient-accent: linear-gradient(90deg, hsl(260 100% 65%), hsl(280 100% 70%), hsl(300 100% 75%));
+    --gradient-visualizer: linear-gradient(180deg, hsl(260 100% 65%), hsl(280 100% 70%), hsl(300 100% 75%));
+    
+    /* Shadows for depth */
+    --shadow-player: 0 20px 40px -12px hsl(260 100% 65% / 0.25);
+    --shadow-card: 0 8px 24px -6px hsl(230 25% 8% / 0.4);
+    --shadow-glow: 0 0 20px hsl(260 100% 65% / 0.3);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+    --radius: 0.75rem;
 
     --sidebar-background: 0 0% 98%;
 

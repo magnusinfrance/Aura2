@@ -1,0 +1,173 @@
+import React, { useRef, useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { 
+  FolderOpen, 
+  Upload, 
+  FileAudio, 
+  Plus,
+  HardDrive
+} from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+
+interface FileManagerProps {
+  onFilesAdd: (files: File[]) => void;
+}
+
+export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
+  const [dragOver, setDragOver] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const folderInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
+  const supportedFormats = [
+    '.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma'
+  ];
+
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.target.files || []);
+    handleFiles(files);
+  };
+
+  const handleFiles = (files: File[]) => {
+    const audioFiles = files.filter(file => {
+      const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+      return supportedFormats.includes(extension);
+    });
+
+    if (audioFiles.length === 0) {
+      toast({
+        title: "No audio files found",
+        description: "Please select files with supported formats: " + supportedFormats.join(', '),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (audioFiles.length !== files.length) {
+      toast({
+        title: "Some files were skipped",
+        description: `${audioFiles.length} of ${files.length} files were added. Only audio files are supported.`,
+      });
+    } else {
+      toast({
+        title: "Files added successfully",
+        description: `Added ${audioFiles.length} audio file${audioFiles.length !== 1 ? 's' : ''} to your library.`,
+      });
+    }
+
+    onFilesAdd(audioFiles);
+  };
+
+  const handleDrop = (event: React.DragEvent) => {
+    event.preventDefault();
+    setDragOver(false);
+    
+    const files = Array.from(event.dataTransfer.files);
+    handleFiles(files);
+  };
+
+  const handleDragOver = (event: React.DragEvent) => {
+    event.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (event: React.DragEvent) => {
+    event.preventDefault();
+    setDragOver(false);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center space-x-2 mb-4">
+        <HardDrive className="h-5 w-5 text-primary" />
+        <h3 className="font-semibold">File Manager</h3>
+      </div>
+
+      {/* Drag & Drop Area */}
+      <div
+        className={`
+          border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200
+          ${dragOver 
+            ? 'border-primary bg-primary/10' 
+            : 'border-border hover:border-primary/50'
+          }
+        `}
+        onDrop={handleDrop}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+      >
+        <Upload className={`h-8 w-8 mx-auto mb-3 ${
+          dragOver ? 'text-primary' : 'text-muted-foreground'
+        }`} />
+        <h4 className="font-medium mb-1">
+          {dragOver ? 'Drop files here' : 'Drag & drop audio files'}
+        </h4>
+        <p className="text-sm text-muted-foreground">
+          or click below to browse
+        </p>
+      </div>
+
+      {/* File Selection Buttons */}
+      <div className="grid grid-cols-1 gap-2">
+        <Button
+          variant="outline"
+          className="justify-start bg-player-elevated border-border hover:bg-player-surface"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <FileAudio className="h-4 w-4 mr-2" />
+          Add Audio Files
+        </Button>
+
+        <Button
+          variant="outline"
+          className="justify-start bg-player-elevated border-border hover:bg-player-surface"
+          onClick={() => folderInputRef.current?.click()}
+        >
+          <FolderOpen className="h-4 w-4 mr-2" />
+          Add Folder
+        </Button>
+      </div>
+
+      {/* Hidden File Inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        multiple
+        accept={supportedFormats.join(',')}
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+      
+      <input
+        ref={folderInputRef}
+        type="file"
+        // @ts-ignore - webkitdirectory is not in the standard types
+        webkitdirectory=""
+        multiple
+        onChange={handleFileSelect}
+        className="hidden"
+      />
+
+      {/* Supported Formats */}
+      <div className="text-xs text-muted-foreground">
+        <p className="font-medium mb-1">Supported formats:</p>
+        <p>{supportedFormats.join(', ')}</p>
+      </div>
+
+      {/* Quick Actions */}
+      <div className="pt-2 border-t border-border">
+        <p className="text-sm font-medium mb-2">Quick Actions</p>
+        <div className="space-y-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-start text-xs h-8"
+          >
+            <Plus className="h-3 w-3 mr-2" />
+            Create New Playlist
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -52,6 +52,16 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
+				// Music Player Custom Colors
+				player: {
+					bg: 'hsl(var(--player-bg))',
+					surface: 'hsl(var(--player-surface))',
+					elevated: 'hsl(var(--player-surface-elevated))',
+					accent: 'hsl(var(--player-accent))',
+					'accent-hover': 'hsl(var(--player-accent-hover))',
+					success: 'hsl(var(--player-success))',
+					warning: 'hsl(var(--player-warning))'
+				},
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
 					foreground: 'hsl(var(--sidebar-foreground))',
@@ -84,11 +94,70 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				// Music Player Animations
+				'pulse-glow': {
+					'0%, 100%': { 
+						opacity: '1',
+						transform: 'scale(1)'
+					},
+					'50%': { 
+						opacity: '0.8',
+						transform: 'scale(1.05)'
+					}
+				},
+				'spin-slow': {
+					from: { transform: 'rotate(0deg)' },
+					to: { transform: 'rotate(360deg)' }
+				},
+				'bounce-in': {
+					'0%': { 
+						transform: 'scale(0.3)',
+						opacity: '0'
+					},
+					'50%': { 
+						transform: 'scale(1.05)',
+						opacity: '0.8'
+					},
+					'100%': { 
+						transform: 'scale(1)',
+						opacity: '1'
+					}
+				},
+				'slide-up': {
+					from: { 
+						transform: 'translateY(100%)',
+						opacity: '0'
+					},
+					to: { 
+						transform: 'translateY(0)',
+						opacity: '1'
+					}
+				},
+				'fade-in': {
+					from: { opacity: '0' },
+					to: { opacity: '1' }
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+				'spin-slow': 'spin-slow 3s linear infinite',
+				'bounce-in': 'bounce-in 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+				'slide-up': 'slide-up 0.3s ease-out',
+				'fade-in': 'fade-in 0.3s ease-out'
+			},
+			backgroundImage: {
+				'gradient-primary': 'var(--gradient-primary)',
+				'gradient-secondary': 'var(--gradient-secondary)',
+				'gradient-accent': 'var(--gradient-accent)',
+				'gradient-visualizer': 'var(--gradient-visualizer)'
+			},
+			boxShadow: {
+				'player': 'var(--shadow-player)',
+				'card-player': 'var(--shadow-card)',
+				'glow': 'var(--shadow-glow)'
 			}
 		}
 	},
