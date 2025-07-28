@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'neon' | 'sunset' | 'ocean' | 'forest';
+type Theme = 'dark' | 'neon' | 'sunset' | 'ocean' | 'forest' | 'cyberpunk' | 'retro' | 'arctic' | 'fire' | 'gold';
 
 interface ThemeContextType {
   theme: Theme;
@@ -54,6 +54,51 @@ export const themes = [
       '--primary': '150 50% 45%',
       '--accent': '170 60% 55%',
       '--gradient-primary': 'linear-gradient(135deg, hsl(150 50% 45%), hsl(170 60% 55%))',
+    }
+  },
+  {
+    name: 'cyberpunk' as Theme,
+    label: 'Cyberpunk Pink',
+    colors: {
+      '--primary': '320 100% 60%',
+      '--accent': '300 100% 70%',
+      '--gradient-primary': 'linear-gradient(135deg, hsl(320 100% 60%), hsl(300 100% 70%))',
+    }
+  },
+  {
+    name: 'retro' as Theme,
+    label: 'Retro Wave',
+    colors: {
+      '--primary': '290 100% 55%',
+      '--accent': '315 100% 65%',
+      '--gradient-primary': 'linear-gradient(135deg, hsl(290 100% 55%), hsl(315 100% 65%))',
+    }
+  },
+  {
+    name: 'arctic' as Theme,
+    label: 'Arctic Ice',
+    colors: {
+      '--primary': '180 100% 70%',
+      '--accent': '200 100% 80%',
+      '--gradient-primary': 'linear-gradient(135deg, hsl(180 100% 70%), hsl(200 100% 80%))',
+    }
+  },
+  {
+    name: 'fire' as Theme,
+    label: 'Fire Red',
+    colors: {
+      '--primary': '0 100% 55%',
+      '--accent': '15 100% 65%',
+      '--gradient-primary': 'linear-gradient(135deg, hsl(0 100% 55%), hsl(15 100% 65%))',
+    }
+  },
+  {
+    name: 'gold' as Theme,
+    label: 'Golden Hour',
+    colors: {
+      '--primary': '50 100% 55%',
+      '--accent': '35 100% 65%',
+      '--gradient-primary': 'linear-gradient(135deg, hsl(50 100% 55%), hsl(35 100% 65%))',
     }
   }
 ];

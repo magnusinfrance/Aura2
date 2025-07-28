@@ -72,8 +72,12 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
 
   const createGradient = (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
     const gradient = ctx.createLinearGradient(0, canvas.height, 0, 0);
-    gradient.addColorStop(0, 'hsl(var(--primary))');
-    gradient.addColorStop(0.5, 'hsl(var(--accent))');
+    const computedStyle = getComputedStyle(document.documentElement);
+    const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+    const accentColor = computedStyle.getPropertyValue('--accent').trim();
+    
+    gradient.addColorStop(0, `hsl(${primaryColor})`);
+    gradient.addColorStop(0.5, `hsl(${accentColor})`);
     gradient.addColorStop(1, 'hsl(300, 100%, 75%)');
     return gradient;
   };
@@ -87,7 +91,9 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
       const barHeight = (dataArray[i] / 255) * canvas.height;
       
       ctx.fillStyle = gradient;
-      ctx.shadowColor = 'hsl(var(--primary))';
+      const computedStyle = getComputedStyle(document.documentElement);
+      const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+      ctx.shadowColor = `hsl(${primaryColor})`;
       ctx.shadowBlur = 10;
       ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
       
@@ -97,9 +103,12 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
   };
 
   const drawWave = (ctx: CanvasRenderingContext2D, dataArray: Uint8Array, canvas: HTMLCanvasElement) => {
+    const computedStyle = getComputedStyle(document.documentElement);
+    const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+    
     ctx.lineWidth = 3;
-    ctx.strokeStyle = 'hsl(var(--primary))';
-    ctx.shadowColor = 'hsl(var(--primary))';
+    ctx.strokeStyle = `hsl(${primaryColor})`;
+    ctx.shadowColor = `hsl(${primaryColor})`;
     ctx.shadowBlur = 15;
     
     ctx.beginPath();
@@ -129,7 +138,11 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 20;
     
-    ctx.shadowColor = 'hsl(var(--primary))';
+    const computedStyle = getComputedStyle(document.documentElement);
+    const primaryColor = computedStyle.getPropertyValue('--primary').trim();
+    const accentColor = computedStyle.getPropertyValue('--accent').trim();
+    
+    ctx.shadowColor = `hsl(${primaryColor})`;
     ctx.shadowBlur = 20;
     
     for (let i = 0; i < dataArray.length; i++) {
@@ -142,8 +155,8 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
       const y2 = centerY + Math.sin(angle) * radius;
       
       const gradient = ctx.createLinearGradient(x1, y1, x2, y2);
-      gradient.addColorStop(0, 'hsl(var(--primary))');
-      gradient.addColorStop(1, 'hsl(var(--accent))');
+      gradient.addColorStop(0, `hsl(${primaryColor})`);
+      gradient.addColorStop(1, `hsl(${accentColor})`);
       
       ctx.strokeStyle = gradient;
       ctx.lineWidth = 2;

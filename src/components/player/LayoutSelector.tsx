@@ -4,8 +4,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Layout, LayoutGrid, Sidebar, Check } from 'lucide-react';
 
 interface LayoutSelectorProps {
-  layout: 'standard' | 'compact' | 'mini';
-  setLayout: (layout: 'standard' | 'compact' | 'mini') => void;
+  layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
+  setLayout: (layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus') => void;
 }
 
 export const LayoutSelector: React.FC<LayoutSelectorProps> = ({ layout, setLayout }) => {
@@ -20,6 +20,18 @@ export const LayoutSelector: React.FC<LayoutSelectorProps> = ({ layout, setLayou
       id: 'compact' as const,
       name: 'Compact',
       description: 'Condensed layout for smaller screens',
+      icon: Layout,
+    },
+    {
+      id: 'widescreen' as const,
+      name: 'Widescreen',
+      description: 'Optimized for wide displays',
+      icon: LayoutGrid,
+    },
+    {
+      id: 'focus' as const,
+      name: 'Focus Mode',
+      description: 'Distraction-free listening experience',
       icon: Layout,
     },
     {

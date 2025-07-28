@@ -20,7 +20,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
   const { toast } = useToast();
 
   const supportedFormats = [
-    '.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma'
+    '.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma', '.mod', '.s3m', '.xm', '.it'
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -58,12 +58,61 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
     onFilesAdd(audioFiles);
   };
 
-  const handleDrop = (event: React.DragEvent) => {
+  const processDirectoryEntry = async (entry: any): Promise<File[]> => {
+    const files: File[] = [];
+    
+    if (entry.isFile) {
+      return new Promise((resolve) => {
+        entry.file((file: File) => {
+          const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+          if (supportedFormats.includes(extension)) {
+            files.push(file);
+          }
+          resolve(files);
+        });
+      });
+    } else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      return new Promise((resolve) => {
+        reader.readEntries(async (entries: any[]) => {
+          const promises = entries.map(processDirectoryEntry);
+          const results = await Promise.all(promises);
+          resolve(results.flat());
+        });
+      });
+    }
+    
+    return files;
+  };
+
+  const handleDrop = async (event: React.DragEvent) => {
     event.preventDefault();
     setDragOver(false);
     
-    const files = Array.from(event.dataTransfer.files);
-    handleFiles(files);
+    const items = event.dataTransfer.items;
+    const allFiles: File[] = [];
+    
+    if (items) {
+      const promises = [];
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === 'file') {
+          const entry = item.webkitGetAsEntry();
+          if (entry) {
+            promises.push(processDirectoryEntry(entry));
+          }
+        }
+      }
+      
+      const results = await Promise.all(promises);
+      allFiles.push(...results.flat());
+    } else {
+      // Fallback for older browsers
+      const files = Array.from(event.dataTransfer.files);
+      allFiles.push(...files);
+    }
+    
+    handleFiles(allFiles);
   };
 
   const handleDragOver = (event: React.DragEvent) => {
@@ -100,10 +149,10 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
           dragOver ? 'text-primary' : 'text-muted-foreground'
         }`} />
         <h4 className="font-medium mb-1">
-          {dragOver ? 'Drop files here' : 'Drag & drop audio files'}
+          {dragOver ? 'Drop files/folders here' : 'Drag & drop audio files or folders'}
         </h4>
         <p className="text-sm text-muted-foreground">
-          or click below to browse
+          Supports nested folders • Click below to browse
         </p>
       </div>
 

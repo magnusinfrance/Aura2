@@ -45,7 +45,7 @@ const MusicPlayerContent: React.FC = () => {
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'album'>('list');
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
-  const [layout, setLayout] = useState<'standard' | 'compact' | 'mini'>('standard');
+  const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioContextRef = useRef<AudioContext | null>(null);
@@ -222,34 +222,38 @@ const MusicPlayerContent: React.FC = () => {
     <div className="min-h-screen bg-gradient-secondary p-4 space-y-4">
       <audio ref={audioRef} />
       
-      {/* Header */}
-      <div className="flex items-center justify-between py-6">
-        <div className="text-center flex-1">
-          <h1 className="text-4xl font-bold bg-gradient-accent bg-clip-text text-transparent">
-            Ultimate Music Player
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Your complete audio experience
-          </p>
-        </div>
-        
-        {/* Controls */}
-        <div className="flex items-center space-x-2">
-          <ThemeSelector />
-          <LayoutSelector layout={layout} setLayout={setLayout} />
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setLayout('mini')}
-          >
-            <Minimize2 className="h-4 w-4" />
-          </Button>
+      {/* Header - 40% smaller height */}
+      <div className="bg-gradient-primary p-3 text-white shadow-player">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold">
+              Ultimate Music Player
+            </h1>
+            <p className="text-white/80 text-sm mt-1">
+              Your complete audio experience
+            </p>
+          </div>
+          
+          {/* Controls */}
+          <div className="flex items-center space-x-2">
+            <ThemeSelector />
+            <LayoutSelector layout={layout} setLayout={setLayout} />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLayout('mini')}
+            >
+              <Minimize2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* Main Layout */}
-      <div className={`max-w-7xl mx-auto ${
-        layout === 'compact' ? 'space-y-4' : 'grid grid-cols-12 gap-4'
+      <div className={`${
+        layout === 'widescreen' ? 'max-w-full mx-4' : 'max-w-7xl mx-auto'
+      } ${
+        layout === 'compact' || layout === 'focus' ? 'space-y-4' : 'grid grid-cols-12 gap-4'
       }`}>
         {layout === 'compact' ? (
           // Compact Layout
@@ -291,6 +295,110 @@ const MusicPlayerContent: React.FC = () => {
                 viewMode="list"
               />
             </Card>
+          </>
+        ) : layout === 'focus' ? (
+          // Focus Layout - Minimalist design for distraction-free listening
+          <>
+            <div className="max-w-4xl mx-auto text-center space-y-8">
+              <Card className="bg-player-surface border-border overflow-hidden">
+                <div className="p-12">
+                  <div className="mx-auto mb-8">
+                    <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <h1 className="text-4xl font-bold text-foreground">
+                      {currentTrack?.name || 'No track selected'}
+                    </h1>
+                    <p className="text-2xl text-muted-foreground">
+                      {currentTrack?.artist || 'Unknown Artist'}
+                    </p>
+                    <p className="text-lg text-muted-foreground/70">
+                      {currentTrack?.album || 'Unknown Album'}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+              
+              <Card className="bg-player-surface border-border h-32">
+                <EnhancedVisualizer 
+                  analyser={analyserRef.current}
+                  isPlaying={isPlaying}
+                />
+              </Card>
+            </div>
+          </>
+        ) : layout === 'widescreen' ? (
+          // Widescreen Layout - Optimized for wide displays
+          <>
+            {/* Top Row - File Manager and Now Playing */}
+            <div className="col-span-12 grid grid-cols-12 gap-4 mb-4">
+              <div className="col-span-3">
+                <Card className="bg-player-surface border-border p-4">
+                  <FileManager onFilesAdd={addFiles} />
+                </Card>
+              </div>
+              
+              <div className="col-span-6">
+                <Card className="bg-player-surface border-border overflow-hidden">
+                  <div className="p-6">
+                    <div className="flex items-center space-x-6">
+                      <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-3xl font-bold text-foreground truncate">
+                          {currentTrack?.name || 'No track selected'}
+                        </h2>
+                        <p className="text-xl text-muted-foreground truncate mt-2">
+                          {currentTrack?.artist || 'Unknown Artist'}
+                        </p>
+                        <p className="text-lg text-muted-foreground/70 truncate mt-1">
+                          {currentTrack?.album || 'Unknown Album'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+              
+              <div className="col-span-3">
+                <Card className="bg-player-surface border-border h-full">
+                  <EnhancedVisualizer 
+                    analyser={analyserRef.current}
+                    isPlaying={isPlaying}
+                  />
+                </Card>
+              </div>
+            </div>
+            
+            {/* Bottom Row - Track List and Playlist */}
+            <div className="col-span-12 grid grid-cols-12 gap-4">
+              <div className="col-span-8">
+                <Card className="bg-player-surface border-border">
+                  <TrackList 
+                    tracks={tracks}
+                    currentTrack={currentTrack}
+                    onTrackSelect={playTrack}
+                    viewMode="list"
+                  />
+                </Card>
+              </div>
+              
+              <div className="col-span-4">
+                <Card className="bg-player-surface border-border">
+                  <RightSidePlaylist
+                    currentPlaylist={currentPlaylistQueue}
+                    setCurrentPlaylist={setCurrentPlaylistQueue}
+                    allTracks={tracks}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onTrackSelect={playTrack}
+                    onNext={handleNext}
+                    isShuffled={isShuffled}
+                    onShuffleToggle={() => setIsShuffled(!isShuffled)}
+                  />
+                </Card>
+              </div>
+            </div>
           </>
         ) : (
           // Standard Layout
