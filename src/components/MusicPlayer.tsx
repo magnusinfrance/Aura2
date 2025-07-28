@@ -168,6 +168,18 @@ const MusicPlayerContent: React.FC = () => {
     }));
     
     setTracks(prev => [...prev, ...newTracks]);
+    // Automatically add to queue
+    setCurrentPlaylistQueue(prev => [...prev, ...newTracks]);
+  };
+
+  const handleSavePlaylist = (name: string, tracks: Track[]) => {
+    const newPlaylist: Playlist = {
+      id: Math.random().toString(36),
+      name,
+      tracks,
+      createdAt: new Date(),
+    };
+    setPlaylists(prev => [...prev, newPlaylist]);
   };
 
   if (layout === 'mini') {
@@ -395,6 +407,7 @@ const MusicPlayerContent: React.FC = () => {
                     onNext={handleNext}
                     isShuffled={isShuffled}
                     onShuffleToggle={() => setIsShuffled(!isShuffled)}
+                    onSavePlaylist={handleSavePlaylist}
                   />
                 </Card>
               </div>
@@ -519,17 +532,18 @@ const MusicPlayerContent: React.FC = () => {
               </Card>
               
               <Card className="bg-player-surface border-border h-96">
-                <RightSidePlaylist
-                  currentPlaylist={currentPlaylistQueue}
-                  setCurrentPlaylist={setCurrentPlaylistQueue}
-                  allTracks={tracks}
-                  currentTrack={currentTrack}
-                  isPlaying={isPlaying}
-                  onTrackSelect={playTrack}
-                  onNext={handleNext}
-                  isShuffled={isShuffled}
-                  onShuffleToggle={() => setIsShuffled(!isShuffled)}
-                />
+                  <RightSidePlaylist
+                    currentPlaylist={currentPlaylistQueue}
+                    setCurrentPlaylist={setCurrentPlaylistQueue}
+                    allTracks={tracks}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onTrackSelect={playTrack}
+                    onNext={handleNext}
+                    isShuffled={isShuffled}
+                    onShuffleToggle={() => setIsShuffled(!isShuffled)}
+                    onSavePlaylist={handleSavePlaylist}
+                  />
               </Card>
             </div>
           </>

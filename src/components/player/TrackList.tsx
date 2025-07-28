@@ -77,7 +77,7 @@ export const TrackList: React.FC<TrackListProps> = ({
       {viewMode === 'list' && (
         <div className="space-y-1">
           {/* Header */}
-          <div className="grid grid-cols-12 gap-4 px-4 py-2 text-xs font-medium text-muted-foreground border-b border-border">
+          <div className="grid grid-cols-12 gap-3 px-3 py-2 text-xs font-medium text-muted-foreground border-b border-border">
             <div className="col-span-1">#</div>
             <div className="col-span-5">Title</div>
             <div className="col-span-3">Artist</div>
@@ -95,11 +95,12 @@ export const TrackList: React.FC<TrackListProps> = ({
               <div
                 key={track.id}
                 className={`
-                  grid grid-cols-12 gap-4 px-4 py-3 rounded-lg cursor-pointer transition-all duration-200
+                  grid grid-cols-12 gap-3 px-3 py-1.5 rounded-lg cursor-pointer transition-all duration-200
                   hover:bg-player-elevated group
                   ${isCurrentTrack ? 'bg-player-elevated border border-primary/20' : ''}
                 `}
                 onClick={() => onTrackSelect(track)}
+                onDoubleClick={() => onTrackSelect(track)}
               >
                 <div className="col-span-1 flex items-center">
                   {isCurrentTrack ? (
@@ -132,12 +133,12 @@ export const TrackList: React.FC<TrackListProps> = ({
                   </Button>
                 </div>
                 
-                <div className="col-span-5 flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-primary rounded flex items-center justify-center flex-shrink-0">
-                    <Music className="h-5 w-5 text-primary-foreground" />
+                <div className="col-span-5 flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-gradient-primary rounded flex items-center justify-center flex-shrink-0">
+                    <Music className="h-4 w-4 text-primary-foreground" />
                   </div>
                   <div className="min-w-0">
-                    <p className={`font-medium truncate ${
+                    <p className={`font-medium text-sm truncate ${
                       isCurrentTrack ? 'text-primary' : 'text-foreground'
                     }`}>
                       {track.name}
@@ -146,19 +147,19 @@ export const TrackList: React.FC<TrackListProps> = ({
                 </div>
                 
                 <div className="col-span-3 flex items-center">
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="text-xs text-muted-foreground truncate">
                     {track.artist || 'Unknown Artist'}
                   </p>
                 </div>
                 
                 <div className="col-span-2 flex items-center">
-                  <p className="text-sm text-muted-foreground truncate">
+                  <p className="text-xs text-muted-foreground truncate">
                     {track.album || 'Unknown Album'}
                   </p>
                 </div>
                 
                 <div className="col-span-1 flex items-center justify-end">
-                  <p className="text-sm text-muted-foreground font-mono">
+                  <p className="text-xs text-muted-foreground font-mono">
                     {formatDuration(track.duration)}
                   </p>
                 </div>
