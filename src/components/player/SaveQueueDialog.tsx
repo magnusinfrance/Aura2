@@ -7,17 +7,21 @@ import { Track } from '../MusicPlayer';
 import { Save } from 'lucide-react';
 
 interface SaveQueueDialogProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  open?: boolean;
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
   onSave: (name: string) => void;
-  tracks: Track[];
+  tracks?: Track[];
 }
 
 export const SaveQueueDialog: React.FC<SaveQueueDialogProps> = ({
   isOpen,
+  open,
   onClose,
+  onOpenChange,
   onSave,
-  tracks,
+  tracks = [],
 }) => {
   const [playlistName, setPlaylistName] = useState('');
 
@@ -25,7 +29,8 @@ export const SaveQueueDialog: React.FC<SaveQueueDialogProps> = ({
     if (playlistName.trim()) {
       onSave(playlistName.trim());
       setPlaylistName('');
-      onClose();
+      if (onClose) onClose();
+      if (onOpenChange) onOpenChange(false);
     }
   };
 
@@ -35,8 +40,11 @@ export const SaveQueueDialog: React.FC<SaveQueueDialogProps> = ({
     }
   };
 
+  const dialogOpen = open !== undefined ? open : isOpen;
+  const handleOpenChange = onOpenChange || onClose;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center space-x-2">
@@ -83,7 +91,7 @@ export const SaveQueueDialog: React.FC<SaveQueueDialogProps> = ({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={() => handleOpenChange && handleOpenChange(false)}>
             Cancel
           </Button>
           <Button 

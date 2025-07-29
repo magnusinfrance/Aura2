@@ -9,6 +9,9 @@ import { RightSidePlaylist } from './player/RightSidePlaylist';
 import { AlbumArt } from './player/AlbumArt';
 import { ThemeSelector } from './player/ThemeSelector';
 import { LayoutSelector } from './player/LayoutSelector';
+import { LeftSidePlaylist } from './player/LeftSidePlaylist';
+import { CompactNowPlaying } from './player/CompactNowPlaying';
+import { SettingsPanel } from './player/SettingsPanel';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -231,31 +234,28 @@ const MusicPlayerContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-secondary p-4 space-y-4">
+    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2">
       <audio ref={audioRef} />
       
-      {/* Header - 40% smaller height */}
-      <div className="bg-gradient-primary p-3 text-white shadow-player">
+      {/* Compact Header */}
+      <div className="bg-gradient-primary p-2 text-white shadow-player rounded-lg">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">
+            <h1 className="text-lg font-bold">
               Ultimate Music Player
             </h1>
-            <p className="text-white/80 text-sm mt-1">
-              Your complete audio experience
-            </p>
           </div>
           
           {/* Controls */}
-          <div className="flex items-center space-x-2">
-            <ThemeSelector />
-            <LayoutSelector layout={layout} setLayout={setLayout} />
+          <div className="flex items-center space-x-1">
+            <SettingsPanel layout={layout} setLayout={setLayout} />
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLayout('mini')}
+              className="h-7 w-7 p-0"
             >
-              <Minimize2 className="h-4 w-4" />
+              <Minimize2 className="h-3 w-3" />
             </Button>
           </div>
         </div>
@@ -414,125 +414,14 @@ const MusicPlayerContent: React.FC = () => {
             </div>
           </>
         ) : (
-          // Standard Layout
+          // Optimized Layout - Left playlist, center content, compact design
           <>
-            {/* Left Sidebar - File Manager & Playlists */}
-            <div className="col-span-12 lg:col-span-3 space-y-4">
-              <Card className="bg-player-surface border-border p-4">
-                <FileManager onFilesAdd={addFiles} />
-              </Card>
-              
-              <Card className="bg-player-surface border-border p-4">
-                <PlaylistManager 
-                  playlists={playlists}
-                  setPlaylists={setPlaylists}
-                  tracks={tracks}
-                  activePlaylist={activePlaylist}
-                  setActivePlaylist={setActivePlaylist}
-                />
-              </Card>
-            </div>
-
-            {/* Center - Main Content */}
-            <div className="col-span-12 lg:col-span-6 space-y-4">
-              {/* Now Playing */}
-              <Card className="bg-player-surface border-border overflow-hidden">
-                <div className="p-6">
-                  <div className="flex items-center space-x-6">
-                    <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
-                    
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-3xl font-bold text-foreground truncate">
-                        {currentTrack?.name || 'No track selected'}
-                      </h2>
-                      <p className="text-xl text-muted-foreground truncate mt-2">
-                        {currentTrack?.artist || 'Unknown Artist'}
-                      </p>
-                      <p className="text-lg text-muted-foreground/70 truncate mt-1">
-                        {currentTrack?.album || 'Unknown Album'}
-                      </p>
-                      
-                      <div className="flex items-center mt-4">
-                        <div className={`
-                          w-3 h-3 rounded-full mr-3
-                          ${isPlaying ? 'bg-player-success animate-pulse' : 'bg-muted-foreground'}
-                        `} />
-                        <span className="text-sm font-medium text-muted-foreground">
-                          {isPlaying ? 'Now Playing' : 'Paused'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Visual Elements */}
-                    <div className="hidden lg:flex items-center space-x-2">
-                      {[...Array(5)].map((_, i) => (
-                        <div
-                          key={i}
-                          className={`
-                            w-1 bg-gradient-accent rounded-full transition-all duration-300
-                            ${isPlaying ? 'animate-pulse' : 'opacity-30'}
-                          `}
-                          style={{
-                            height: isPlaying ? `${20 + Math.random() * 30}px` : '15px',
-                            animationDelay: `${i * 0.15}s`,
-                          }}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              {/* Track List */}
-              <Card className="bg-player-surface border-border">
-                <Tabs value={viewMode} onValueChange={(value) => setViewMode(value as any)} className="w-full">
-                  <TabsList className="grid grid-cols-3 w-full bg-player-elevated">
-                    <TabsTrigger value="list">List</TabsTrigger>
-                    <TabsTrigger value="grid">Grid</TabsTrigger>
-                    <TabsTrigger value="album">Album</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="list" className="mt-0">
-                    <TrackList 
-                      tracks={tracks}
-                      currentTrack={currentTrack}
-                      onTrackSelect={playTrack}
-                      viewMode="list"
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="grid" className="mt-0">
-                    <TrackList 
-                      tracks={tracks}
-                      currentTrack={currentTrack}
-                      onTrackSelect={playTrack}
-                      viewMode="grid"
-                    />
-                  </TabsContent>
-                  
-                  <TabsContent value="album" className="mt-0">
-                    <TrackList 
-                      tracks={tracks}
-                      currentTrack={currentTrack}
-                      onTrackSelect={playTrack}
-                      viewMode="album"
-                    />
-                  </TabsContent>
-                </Tabs>
-              </Card>
-            </div>
-
-            {/* Right Sidebar - Queue & Visualizer */}
-            <div className="col-span-12 lg:col-span-3 space-y-4">
-              <Card className="bg-player-surface border-border h-96">
-                <EnhancedVisualizer 
-                  analyser={analyserRef.current}
-                  isPlaying={isPlaying}
-                />
-              </Card>
-              
-              <Card className="bg-player-surface border-border h-96">
-                  <RightSidePlaylist
+            {/* Main Grid */}
+            <div className="grid grid-cols-12 gap-2 h-[calc(100vh-8rem)]">
+              {/* Left Side - Playlist/Queue */}
+              <div className="col-span-12 lg:col-span-3">
+                <Card className="bg-player-surface border-border h-full">
+                  <LeftSidePlaylist
                     currentPlaylist={currentPlaylistQueue}
                     setCurrentPlaylist={setCurrentPlaylistQueue}
                     allTracks={tracks}
@@ -544,7 +433,41 @@ const MusicPlayerContent: React.FC = () => {
                     onShuffleToggle={() => setIsShuffled(!isShuffled)}
                     onSavePlaylist={handleSavePlaylist}
                   />
-              </Card>
+                </Card>
+              </div>
+
+              {/* Center Content */}
+              <div className="col-span-12 lg:col-span-9 space-y-2">
+                {/* Top: Visualizer */}
+                <Card className="bg-player-surface border-border h-32">
+                  <EnhancedVisualizer 
+                    analyser={analyserRef.current}
+                    isPlaying={isPlaying}
+                  />
+                </Card>
+
+                {/* Middle: Now Playing & File Manager */}
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-12 lg:col-span-8">
+                    <CompactNowPlaying track={currentTrack} isPlaying={isPlaying} />
+                  </div>
+                  <div className="col-span-12 lg:col-span-4">
+                    <Card className="bg-player-surface border-border p-2">
+                      <FileManager onFilesAdd={addFiles} />
+                    </Card>
+                  </div>
+                </div>
+
+                {/* Bottom: Track List */}
+                <Card className="bg-player-surface border-border flex-1">
+                  <TrackList 
+                    tracks={tracks}
+                    currentTrack={currentTrack}
+                    onTrackSelect={playTrack}
+                    viewMode="list"
+                  />
+                </Card>
+              </div>
             </div>
           </>
         )}
