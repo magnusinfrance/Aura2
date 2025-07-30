@@ -302,16 +302,25 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               </Card>
               
               <Card className="bg-player-surface border-border overflow-hidden">
-                <div className="p-4">
-                  <div className="flex items-center space-x-4">
-                    <AlbumArt track={currentTrack} isPlaying={isPlaying} size="md" />
-                    <div className="flex-1 min-w-0">
-                      <h2 className="text-xl font-bold truncate">
-                        {currentTrack?.name || 'No track selected'}
-                      </h2>
-                      <p className="text-muted-foreground truncate">
-                        {currentTrack?.artist || 'Unknown Artist'}
-                      </p>
+                <div className="relative overflow-hidden">
+                  {/* Background Visualizer */}
+                  <div className="absolute inset-0 opacity-10">
+                    <EnhancedVisualizer 
+                      analyser={analyserNode}
+                      isPlaying={isPlaying}
+                    />
+                  </div>
+                  <div className="relative z-10 p-4">
+                    <div className="flex items-center space-x-4">
+                      <AlbumArt track={currentTrack} isPlaying={isPlaying} size="md" />
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-xl font-bold truncate drop-shadow-sm">
+                          {currentTrack?.name || 'No track selected'}
+                        </h2>
+                        <p className="text-muted-foreground truncate drop-shadow-sm">
+                          {currentTrack?.artist || 'Unknown Artist'}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -340,21 +349,30 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
           <>
             <div className="max-w-4xl mx-auto text-center space-y-8">
               <Card className="bg-player-surface border-border overflow-hidden">
-                <div className="p-12">
-                  <div className="mx-auto mb-8">
-                    <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
+                <div className="relative overflow-hidden">
+                  {/* Background Visualizer */}
+                  <div className="absolute inset-0 opacity-20">
+                    <EnhancedVisualizer 
+                      analyser={analyserNode}
+                      isPlaying={isPlaying}
+                    />
                   </div>
-                  
-                  <div className="space-y-4">
-                    <h1 className="text-4xl font-bold text-foreground">
-                      {currentTrack?.name || 'No track selected'}
-                    </h1>
-                    <p className="text-2xl text-muted-foreground">
-                      {currentTrack?.artist || 'Unknown Artist'}
-                    </p>
-                    <p className="text-lg text-muted-foreground/70">
-                      {currentTrack?.album || 'Unknown Album'}
-                    </p>
+                  <div className="relative z-10 p-12">
+                    <div className="mx-auto mb-8">
+                      <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
+                    </div>
+                    
+                    <div className="space-y-4">
+                      <h1 className="text-4xl font-bold text-foreground drop-shadow-sm">
+                        {currentTrack?.name || 'No track selected'}
+                      </h1>
+                      <p className="text-2xl text-muted-foreground drop-shadow-sm">
+                        {currentTrack?.artist || 'Unknown Artist'}
+                      </p>
+                      <p className="text-lg text-muted-foreground/70 drop-shadow-sm">
+                        {currentTrack?.album || 'Unknown Album'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </Card>
@@ -380,19 +398,28 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               
               <div className="col-span-6">
                 <Card className="bg-player-surface border-border overflow-hidden">
-                  <div className="p-6">
-                    <div className="flex items-center space-x-6">
-                      <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-3xl font-bold text-foreground truncate">
-                          {currentTrack?.name || 'No track selected'}
-                        </h2>
-                        <p className="text-xl text-muted-foreground truncate mt-2">
-                          {currentTrack?.artist || 'Unknown Artist'}
-                        </p>
-                        <p className="text-lg text-muted-foreground/70 truncate mt-1">
-                          {currentTrack?.album || 'Unknown Album'}
-                        </p>
+                  <div className="relative overflow-hidden">
+                    {/* Background Visualizer */}
+                    <div className="absolute inset-0 opacity-15">
+                      <EnhancedVisualizer 
+                        analyser={analyserNode}
+                        isPlaying={isPlaying}
+                      />
+                    </div>
+                    <div className="relative z-10 p-6">
+                      <div className="flex items-center space-x-6">
+                        <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
+                        <div className="flex-1 min-w-0">
+                          <h2 className="text-3xl font-bold text-foreground truncate drop-shadow-sm">
+                            {currentTrack?.name || 'No track selected'}
+                          </h2>
+                          <p className="text-xl text-muted-foreground truncate mt-2 drop-shadow-sm">
+                            {currentTrack?.artist || 'Unknown Artist'}
+                          </p>
+                          <p className="text-lg text-muted-foreground/70 truncate mt-1 drop-shadow-sm">
+                            {currentTrack?.album || 'Unknown Album'}
+                          </p>
+                        </div>
                       </div>
                     </div>
                   </div>

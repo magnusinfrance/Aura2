@@ -90,9 +90,7 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
         )}
       </div>
 
-      {/* Removed album art - now shown in central tracklist */}
-
-      {/* Track Info */}
+      {/* Track Info - No album art, only text */}
       <div className="flex-1 min-w-0">
         {compact ? (
           <div className="flex items-center justify-between">
