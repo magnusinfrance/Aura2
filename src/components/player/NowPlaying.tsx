@@ -31,7 +31,7 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analys
   return (
     <div className="relative p-12 overflow-hidden min-h-[400px] flex items-center">
       {/* Background Visualizer */}
-      <div className="absolute inset-0 opacity-20">
+      <div className="absolute inset-0 opacity-40">
         <EnhancedVisualizer 
           analyser={analyser}
           isPlaying={isPlaying}

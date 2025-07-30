@@ -89,8 +89,9 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       // Create compressor
       compressorRef.current = audioContext.createDynamicsCompressor();
       
-      // Output gain
+      // Output gain with reduced level to prevent distortion
       outputGainRef.current = audioContext.createGain();
+      outputGainRef.current.gain.value = 0.6; // Reduce output gain to prevent distortion
       
       // Setup delay feedback loop
       if (delayNodeRef.current && delayFeedbackRef.current) {
@@ -352,8 +353,8 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
                 <Slider
                   value={echoTime}
                   onValueChange={setEchoTime}
-                  min={0.2}
-                  max={1.5}
+                   min={0.2}
+                   max={3.0}
                   step={0.1}
                   className="w-full"
                 />

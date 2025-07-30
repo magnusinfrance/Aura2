@@ -17,7 +17,7 @@ export const CompactNowPlaying: React.FC<CompactNowPlayingProps> = ({
   return (
     <div className="bg-player-surface border border-border rounded-lg overflow-hidden relative">
       {/* Background Visualizer */}
-      <div className="absolute inset-0 opacity-10">
+      <div className="absolute inset-0 opacity-40">
         <EnhancedVisualizer 
           analyser={analyser}
           isPlaying={isPlaying}

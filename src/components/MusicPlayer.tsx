@@ -309,14 +309,6 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
                 />
               </Card>
               
-              <Card className="bg-player-surface border-border h-48">
-                <div className="h-full">
-                  <EnhancedVisualizer 
-                    analyser={analyserNode}
-                    isPlaying={isPlaying}
-                  />
-                </div>
-              </Card>
             </div>
             
             <QueueManager
@@ -336,7 +328,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               <Card className="bg-player-surface border-border overflow-hidden">
                 <div className="relative overflow-hidden">
                   {/* Background Visualizer */}
-                  <div className="absolute inset-0 opacity-20">
+                  <div className="absolute inset-0 opacity-40">
                     <EnhancedVisualizer 
                       analyser={analyserNode}
                       isPlaying={isPlaying}
@@ -362,14 +354,6 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
                 </div>
               </Card>
               
-              <Card className="bg-player-surface border-border h-32">
-                <div className="h-full">
-                  <EnhancedVisualizer 
-                    analyser={analyserNode}
-                    isPlaying={isPlaying}
-                  />
-                </div>
-              </Card>
             </div>
           </>
         ) : layout === 'widescreen' ? (
@@ -383,24 +367,13 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
                 </Card>
               </div>
               
-              <div className="col-span-6">
+              <div className="col-span-9">
                 <Card className="bg-player-surface border-border overflow-hidden">
                   <NowPlaying 
                     track={currentTrack} 
                     isPlaying={isPlaying} 
                     analyser={analyserNode}
                   />
-                </Card>
-              </div>
-              
-              <div className="col-span-3">
-                <Card className="bg-player-surface border-border h-full">
-                  <div className="h-full">
-                    <EnhancedVisualizer 
-                      analyser={analyserNode}
-                      isPlaying={isPlaying}
-                    />
-                  </div>
                 </Card>
               </div>
             </div>
