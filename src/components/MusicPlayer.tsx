@@ -19,6 +19,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
+import auraLogo from '@/assets/aura-logo.png';
 
 export interface Track {
   id: string;
@@ -252,16 +253,18 @@ const MusicPlayerContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2">
+    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
       <audio ref={audioRef} />
       
       {/* Compact Header */}
       <div className="bg-gradient-primary p-2 text-white shadow-player rounded-lg">
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-bold">
-              Ultimate Music Player
-            </h1>
+          <div className="flex items-center">
+            <img 
+              src={auraLogo} 
+              alt="AUR:A Music Player" 
+              className="h-8 w-auto object-contain"
+            />
           </div>
           
           {/* Controls */}
@@ -501,7 +504,7 @@ const MusicPlayerContent: React.FC = () => {
       </div>
 
       {/* Bottom Player Controls */}
-      <div className="fixed bottom-0 left-0 right-0 bg-player-surface/95 backdrop-blur-lg border-t border-border">
+      <div className="fixed bottom-0 left-0 right-0 bg-player-surface/95 backdrop-blur-lg border-t border-border z-40">
         <PlayerControls
           isPlaying={isPlaying}
           currentTime={currentTime}

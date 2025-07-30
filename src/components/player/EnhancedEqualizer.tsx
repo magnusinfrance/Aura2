@@ -178,7 +178,7 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
   }, [isEnabled, gains]);
 
   return (
-    <div className="p-4">
+    <div className="p-4 relative z-50">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold">7-Band Equalizer</h3>
         <div className="flex items-center space-x-2">
@@ -196,7 +196,7 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
                 <Save className="h-3 w-3" />
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-md z-[100]">
               <DialogHeader>
                 <DialogTitle>Save User Preset</DialogTitle>
               </DialogHeader>
