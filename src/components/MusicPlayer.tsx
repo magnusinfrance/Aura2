@@ -39,6 +39,7 @@ export interface Playlist {
 }
 
 const MusicPlayerContent: React.FC = () => {
+  console.log('MusicPlayer component is rendering');
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -263,7 +264,8 @@ const MusicPlayerContent: React.FC = () => {
             <img 
               src={auraLogo} 
               alt="AUR:A Music Player" 
-              className="h-8 w-auto object-contain"
+              className="h-8 w-auto object-contain mix-blend-normal"
+              style={{ background: 'transparent' }}
             />
           </div>
           
