@@ -460,7 +460,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               {/* Track List */}
               <Card className="bg-player-surface border-border flex-1 relative overflow-hidden">
                 <div 
-                  className="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain"
+                  className="absolute inset-0 opacity-30 bg-center bg-no-repeat bg-contain"
                   style={{ backgroundImage: `url(/lovable-uploads/db049072-b49c-43cc-8c24-20f9689b97c9.png)` }}
                 />
                  <div className="relative z-10">

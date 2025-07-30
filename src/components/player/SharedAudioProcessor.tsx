@@ -144,29 +144,30 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
   };
 
   const resetAudioBus = () => {
-    cleanup();
-    // If we have an audio element, reinitialize
-    if (audioElement) {
+    // Disconnect all connected nodes first
+    connectedNodes.current.forEach(node => {
       try {
-        const ctx = new AudioContext();
-        const source = ctx.createMediaElementSource(audioElement);
-        const analyser = ctx.createAnalyser();
-        const masterGain = ctx.createGain();
-
-        analyser.fftSize = 256;
-        analyser.smoothingTimeConstant = 0.8;
-        masterGain.gain.value = 1.0;
-
-        source.connect(analyser);
-        analyser.connect(masterGain);
-        masterGain.connect(ctx.destination);
-
-        setAudioContext(ctx);
-        setSourceNode(source);
-        setAnalyserNode(analyser);
-        setMasterGainNode(masterGain);
+        node.disconnect();
+      } catch (e) {
+        // Node already disconnected
+      }
+    });
+    connectedNodes.current.clear();
+    
+    // Restore the original connection: analyser -> masterGain -> destination
+    if (analyserNode && masterGainNode) {
+      try {
+        // Disconnect existing connections
+        analyserNode.disconnect();
+        masterGainNode.disconnect();
+        
+        // Reconnect in clean state
+        analyserNode.connect(masterGainNode);
+        masterGainNode.connect(audioContext!.destination);
+        
+        console.log('Audio bus reset successfully');
       } catch (error) {
-        console.warn('Failed to reset audio bus:', error);
+        console.warn('Failed to reset audio bus connections:', error);
       }
     }
   };

@@ -117,9 +117,11 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
     }
 
     try {
-      console.log('Updating effect chain...');
+      console.log('Updating effect chain...', { 
+        reverbEnabled, delayEnabled, echoEnabled, compressionEnabled 
+      });
       
-      // Disconnect all nodes safely
+      // Disconnect all effect nodes safely
       try {
         if (reverbNodeRef.current) reverbNodeRef.current.disconnect();
         if (reverbGainRef.current) reverbGainRef.current.disconnect();
@@ -130,7 +132,16 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
         if (compressorRef.current) compressorRef.current.disconnect();
         outputGainRef.current.disconnect();
       } catch (e) {
-        console.log('Disconnect error (expected):', e);
+        // Expected disconnection errors
+      }
+
+      // Check if any effects are enabled
+      const anyEffectsEnabled = reverbEnabled || delayEnabled || echoEnabled || compressionEnabled;
+      
+      if (!anyEffectsEnabled) {
+        // No effects enabled - ensure direct connection
+        console.log('No effects enabled, restoring direct connection');
+        return;
       }
 
       // Use analyser as input for effects
@@ -194,14 +205,6 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       console.log('Effect chain updated successfully');
     } catch (error) {
       console.warn('Effect chain update failed:', error);
-      // Fallback: ensure audio flow continues
-      try {
-        if (analyserNode && masterGainNode) {
-          analyserNode.connect(masterGainNode);
-        }
-      } catch (fallbackError) {
-        console.warn('Fallback connection failed:', fallbackError);
-      }
     }
   };
 
@@ -231,6 +234,10 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   const resetAudioBusAndEffects = () => {
     resetEffects();
     resetAudioBus();
+    // Force update the effect chain to ensure clean state
+    setTimeout(() => {
+      updateEffectChain();
+    }, 100);
   };
 
   useEffect(() => {
