@@ -30,7 +30,7 @@ export const CompactNowPlaying: React.FC<CompactNowPlayingProps> = ({
           )}
           {track?.duration && (
             <p className="text-xs text-muted-foreground/50 truncate">
-              {Math.floor(track.duration / 60)}:{(track.duration % 60).toString().padStart(2, '0')}
+              {Math.floor(track.duration / 60)}:{Math.floor(track.duration % 60).toString().padStart(2, '0')}
             </p>
           )}
         </div>

@@ -1,13 +1,15 @@
 import React from 'react';
 import { Track } from '../MusicPlayer';
 import { Music, Disc3 } from 'lucide-react';
+import { EnhancedVisualizer } from './EnhancedVisualizer';
 
 interface NowPlayingProps {
   track: Track | null;
   isPlaying: boolean;
+  analyser?: AnalyserNode | null;
 }
 
-export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying }) => {
+export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analyser }) => {
   if (!track) {
     return (
       <div className="p-8 text-center">
@@ -67,21 +69,12 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying }) => {
           </div>
         </div>
 
-        {/* Visual Elements */}
-        <div className="hidden md:flex items-center space-x-2">
-          {[...Array(5)].map((_, i) => (
-            <div
-              key={i}
-              className={`
-                w-1 bg-gradient-accent rounded-full
-                ${isPlaying ? 'animate-pulse' : 'opacity-30'}
-              `}
-              style={{
-                height: isPlaying ? `${20 + Math.random() * 20}px` : '10px',
-                animationDelay: `${i * 0.1}s`,
-              }}
-            />
-          ))}
+        {/* Audio Visualizer */}
+        <div className="w-48 h-24">
+          <EnhancedVisualizer 
+            analyser={analyser}
+            isPlaying={isPlaying}
+          />
         </div>
       </div>
     </div>

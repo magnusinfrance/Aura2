@@ -13,7 +13,7 @@ import { LeftSidePlaylist } from './player/LeftSidePlaylist';
 import { CompactNowPlaying } from './player/CompactNowPlaying';
 import { SettingsPanel } from './player/SettingsPanel';
 import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
-import { EnhancedEqualizer } from './player/EnhancedEqualizer';
+import { EqualizerPopup } from './player/EqualizerPopup';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -450,26 +450,27 @@ const MusicPlayerContent: React.FC = () => {
                 />
               </Card>
               
-              <Card className="bg-player-surface border-border">
-                <EnhancedEqualizer 
-                  audioContext={audioContextRef.current}
-                  audioElement={audioRef.current}
-                />
+              <Card className="bg-player-surface border-border p-4">
+                <div className="space-y-3">
+                  <h3 className="text-sm font-semibold">Audio Controls</h3>
+                  <EqualizerPopup 
+                    audioContext={audioContextRef.current}
+                    audioElement={audioRef.current}
+                  />
+                </div>
               </Card>
             </div>
 
             {/* Center Content */}
             <div className="col-span-6 space-y-4">
-              {/* Visualizer */}
-              <Card className="bg-player-surface border-border h-48">
-                <EnhancedVisualizer 
+              {/* Now Playing with Visualizer */}
+              <Card className="bg-player-surface border-border">
+                <NowPlaying 
+                  track={currentTrack} 
+                  isPlaying={isPlaying} 
                   analyser={analyserRef.current}
-                  isPlaying={isPlaying}
                 />
               </Card>
-
-              {/* Now Playing */}
-              <CompactNowPlaying track={currentTrack} isPlaying={isPlaying} />
 
               {/* Track List */}
               <Card className="bg-player-surface border-border flex-1">
