@@ -302,35 +302,20 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               </Card>
               
               <Card className="bg-player-surface border-border overflow-hidden">
-                <div className="relative overflow-hidden">
-                  {/* Background Visualizer */}
-                  <div className="absolute inset-0 opacity-10">
-                    <EnhancedVisualizer 
-                      analyser={analyserNode}
-                      isPlaying={isPlaying}
-                    />
-                  </div>
-                  <div className="relative z-10 p-4">
-                    <div className="flex items-center space-x-4">
-                      <AlbumArt track={currentTrack} isPlaying={isPlaying} size="md" />
-                      <div className="flex-1 min-w-0">
-                        <h2 className="text-xl font-bold truncate drop-shadow-sm">
-                          {currentTrack?.name || 'No track selected'}
-                        </h2>
-                        <p className="text-muted-foreground truncate drop-shadow-sm">
-                          {currentTrack?.artist || 'Unknown Artist'}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <CompactNowPlaying 
+                  track={currentTrack} 
+                  isPlaying={isPlaying} 
+                  analyser={analyserNode}
+                />
               </Card>
               
               <Card className="bg-player-surface border-border h-48">
-                <EnhancedVisualizer 
-                  analyser={analyserNode}
-                  isPlaying={isPlaying}
-                />
+                <div className="h-full">
+                  <EnhancedVisualizer 
+                    analyser={analyserNode}
+                    isPlaying={isPlaying}
+                  />
+                </div>
               </Card>
             </div>
             
@@ -378,10 +363,12 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               </Card>
               
               <Card className="bg-player-surface border-border h-32">
-              <EnhancedVisualizer 
-                analyser={analyserNode}
-                isPlaying={isPlaying}
-              />
+                <div className="h-full">
+                  <EnhancedVisualizer 
+                    analyser={analyserNode}
+                    isPlaying={isPlaying}
+                  />
+                </div>
               </Card>
             </div>
           </>
@@ -398,40 +385,22 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               
               <div className="col-span-6">
                 <Card className="bg-player-surface border-border overflow-hidden">
-                  <div className="relative overflow-hidden">
-                    {/* Background Visualizer */}
-                    <div className="absolute inset-0 opacity-15">
-                      <EnhancedVisualizer 
-                        analyser={analyserNode}
-                        isPlaying={isPlaying}
-                      />
-                    </div>
-                    <div className="relative z-10 p-6">
-                      <div className="flex items-center space-x-6">
-                        <AlbumArt track={currentTrack} isPlaying={isPlaying} size="lg" />
-                        <div className="flex-1 min-w-0">
-                          <h2 className="text-3xl font-bold text-foreground truncate drop-shadow-sm">
-                            {currentTrack?.name || 'No track selected'}
-                          </h2>
-                          <p className="text-xl text-muted-foreground truncate mt-2 drop-shadow-sm">
-                            {currentTrack?.artist || 'Unknown Artist'}
-                          </p>
-                          <p className="text-lg text-muted-foreground/70 truncate mt-1 drop-shadow-sm">
-                            {currentTrack?.album || 'Unknown Album'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                  <NowPlaying 
+                    track={currentTrack} 
+                    isPlaying={isPlaying} 
+                    analyser={analyserNode}
+                  />
                 </Card>
               </div>
               
               <div className="col-span-3">
                 <Card className="bg-player-surface border-border h-full">
-                   <EnhancedVisualizer 
-                     analyser={analyserNode}
-                     isPlaying={isPlaying}
-                   />
+                  <div className="h-full">
+                    <EnhancedVisualizer 
+                      analyser={analyserNode}
+                      isPlaying={isPlaying}
+                    />
+                  </div>
                 </Card>
               </div>
             </div>

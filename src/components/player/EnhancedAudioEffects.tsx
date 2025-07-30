@@ -15,6 +15,7 @@ interface EnhancedAudioEffectsProps {
 import { useSharedAudioProcessor } from './SharedAudioProcessor';
 
 export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement }) => {
+  console.log('EnhancedAudioEffects rendering with:', { externalAudioContext, externalAudioElement });
   const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain } = useSharedAudioProcessor();
   const [reverbEnabled, setReverbEnabled] = useState(false);
   const [reverbAmount, setReverbAmount] = useState([30]);
@@ -40,6 +41,7 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   const outputGainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
+    console.log('EnhancedAudioEffects useEffect trigger:', { audioContext, masterGainNode });
     if (audioContext && masterGainNode) {
       setupEffects();
     }
@@ -110,20 +112,29 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   };
 
   const updateEffectChain = () => {
-    if (!audioContext || !masterGainNode || !outputGainRef.current) return;
+    if (!audioContext || !masterGainNode || !outputGainRef.current || !analyserNode) {
+      console.log('Missing required audio nodes for effects');
+      return;
+    }
 
     try {
-      // Disconnect all nodes
-      if (reverbNodeRef.current) reverbNodeRef.current.disconnect();
-      if (reverbGainRef.current) reverbGainRef.current.disconnect();
-      if (delayNodeRef.current) delayNodeRef.current.disconnect();
-      if (delayGainRef.current) delayGainRef.current.disconnect();
-      if (echoNodeRef.current) echoNodeRef.current.disconnect();
-      if (echoGainRef.current) echoGainRef.current.disconnect();
-      if (compressorRef.current) compressorRef.current.disconnect();
-      outputGainRef.current.disconnect();
+      console.log('Updating effect chain...');
+      
+      // Disconnect all nodes safely
+      try {
+        if (reverbNodeRef.current) reverbNodeRef.current.disconnect();
+        if (reverbGainRef.current) reverbGainRef.current.disconnect();
+        if (delayNodeRef.current) delayNodeRef.current.disconnect();
+        if (delayGainRef.current) delayGainRef.current.disconnect();
+        if (echoNodeRef.current) echoNodeRef.current.disconnect();
+        if (echoGainRef.current) echoGainRef.current.disconnect();
+        if (compressorRef.current) compressorRef.current.disconnect();
+        outputGainRef.current.disconnect();
+      } catch (e) {
+        console.log('Disconnect error (expected):', e);
+      }
 
-      // Use shared processor chain
+      // Use analyser as input for effects
       let inputNode = analyserNode;
       
       // Create wet paths for effects
@@ -172,13 +183,26 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       // Connect through shared audio chain only if we have nodes to connect
       if (outputGainRef.current) {
         if (compressionEnabled && compressorRef.current) {
-          connectToChain(outputGainRef.current, compressorRef.current);
+          // First connect to compressor, then to master gain
+          outputGainRef.current.connect(compressorRef.current);
+          compressorRef.current.connect(masterGainNode);
         } else {
-          connectToChain(outputGainRef.current);
+          // Connect directly to master gain
+          outputGainRef.current.connect(masterGainNode);
         }
       }
+      
+      console.log('Effect chain updated successfully');
     } catch (error) {
       console.warn('Effect chain update failed:', error);
+      // Fallback: ensure audio flow continues
+      try {
+        if (analyserNode && masterGainNode) {
+          analyserNode.connect(masterGainNode);
+        }
+      } catch (fallbackError) {
+        console.warn('Fallback connection failed:', fallbackError);
+      }
     }
   };
 
@@ -205,11 +229,17 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
     updateEffectChain();
   };
 
-  useEffect(updateEffectChain, [
+  useEffect(() => {
+    // Only update effect chain if we have a stable audio context
+    if (audioContext && masterGainNode && analyserNode) {
+      updateEffectChain();
+    }
+  }, [
     reverbEnabled, reverbAmount,
     delayEnabled, delayTime, delayFeedback,
     echoEnabled, echoTime, echoFeedback,
-    compressionEnabled
+    compressionEnabled,
+    audioContext, masterGainNode, analyserNode
   ]);
   
   useEffect(updateCompression, [compressionEnabled, compressionRatio]);
