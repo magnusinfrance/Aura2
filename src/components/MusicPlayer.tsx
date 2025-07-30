@@ -15,12 +15,121 @@ import { SettingsPanel } from './player/SettingsPanel';
 import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
 import { EqualizerPopup } from './player/EqualizerPopup';
 import { AudioProcessorProvider } from './player/AudioProcessor';
+import { TrackListMinimal } from './player/TrackListMinimal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
 import auraLogo from '@/assets/aura-logo-transparent.png';
+
+// Helper function to extract audio metadata
+const extractAudioMetadata = async (file: File): Promise<{
+  title?: string;
+  artist?: string;
+  album?: string;
+  duration?: number;
+}> => {
+  return new Promise((resolve) => {
+    const audio = new Audio();
+    const objectUrl = URL.createObjectURL(file);
+    
+    audio.addEventListener('loadedmetadata', async () => {
+      try {
+        // Basic metadata
+        const metadata = { duration: audio.duration };
+        
+        // Try to extract ID3 tags
+        const id3Data = await extractID3Tags(file);
+        resolve({ ...metadata, ...id3Data });
+      } catch (error) {
+        resolve({ duration: audio.duration });
+      } finally {
+        URL.revokeObjectURL(objectUrl);
+      }
+    });
+    
+    audio.addEventListener('error', () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve({});
+    });
+    
+    audio.src = objectUrl;
+  });
+};
+
+// Simple ID3 tag extraction
+const extractID3Tags = async (file: File): Promise<{
+  title?: string;
+  artist?: string;
+  album?: string;
+}> => {
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const dataView = new DataView(arrayBuffer);
+    
+    // Check for ID3v2 header
+    if (dataView.getUint8(0) === 0x49 && // 'I'
+        dataView.getUint8(1) === 0x44 && // 'D'
+        dataView.getUint8(2) === 0x33) { // '3'
+      
+      const size = (dataView.getUint8(6) << 21) |
+                  (dataView.getUint8(7) << 14) |
+                  (dataView.getUint8(8) << 7) |
+                  dataView.getUint8(9);
+      
+      const metadata: any = {};
+      let position = 10;
+      
+      while (position < size + 10) {
+        const frameId = String.fromCharCode(
+          dataView.getUint8(position),
+          dataView.getUint8(position + 1),
+          dataView.getUint8(position + 2),
+          dataView.getUint8(position + 3)
+        );
+        
+        if (frameId === '\0\0\0\0') break;
+        
+        const frameSize = (dataView.getUint8(position + 4) << 24) |
+                         (dataView.getUint8(position + 5) << 16) |
+                         (dataView.getUint8(position + 6) << 8) |
+                         dataView.getUint8(position + 7);
+        
+        position += 10;
+        
+        if (frameSize > 0) {
+          try {
+            const bytes = new Uint8Array(arrayBuffer, position + 1, frameSize - 1);
+            const text = new TextDecoder('utf-8').decode(bytes).replace(/\0.*$/g, '').trim();
+            
+            switch (frameId) {
+              case 'TIT2':
+                metadata.title = text;
+                break;
+              case 'TPE1':
+                metadata.artist = text;
+                break;
+              case 'TALB':
+                metadata.album = text;
+                break;
+            }
+          } catch (e) {
+            // Ignore decode errors
+          }
+        }
+        
+        position += frameSize;
+      }
+      
+      return metadata;
+    }
+    
+    return {};
+  } catch (error) {
+    return {};
+  }
+};
 
 export interface Track {
   id: string;
@@ -54,6 +163,7 @@ const MusicPlayerContent: React.FC = () => {
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'album'>('list');
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
+  const [trackListView, setTrackListView] = useState<'list' | 'grid' | 'album' | 'minimal'>('list');
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
@@ -274,7 +384,9 @@ const MusicPlayerContent: React.FC = () => {
           <div className="flex items-center space-x-1">
             <SettingsPanel 
               layout={layout} 
-              setLayout={setLayout} 
+              setLayout={setLayout}
+              trackListView={trackListView}
+              setTrackListView={setTrackListView}
               audioElement={audioRef.current}
               audioContext={audioContextRef.current}
             />
@@ -466,13 +578,21 @@ const MusicPlayerContent: React.FC = () => {
                   className="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain"
                   style={{ backgroundImage: `url(/lovable-uploads/db049072-b49c-43cc-8c24-20f9689b97c9.png)` }}
                 />
-                <div className="relative z-10">
-                  <TrackList 
-                    tracks={tracks}
-                    currentTrack={currentTrack}
-                    onTrackSelect={playTrack}
-                    viewMode="list"
-                  />
+                 <div className="relative z-10">
+                  {trackListView === 'minimal' ? (
+                    <TrackListMinimal
+                      tracks={tracks}
+                      currentTrack={currentTrack}
+                      onTrackSelect={playTrack}
+                    />
+                  ) : (
+                    <TrackList 
+                      tracks={tracks}
+                      currentTrack={currentTrack}
+                      onTrackSelect={playTrack}
+                      viewMode={trackListView}
+                    />
+                  )}
                 </div>
               </Card>
             </div>

@@ -28,7 +28,7 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analys
   }
 
   return (
-    <div className="relative p-6 overflow-hidden">
+    <div className="relative p-12 overflow-hidden min-h-[400px] flex items-center">
       {/* Background Visualizer */}
       <div className="absolute inset-0 opacity-20">
         <EnhancedVisualizer 
@@ -38,42 +38,42 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analys
       </div>
       
       {/* Content overlay */}
-      <div className="relative z-10 flex items-center space-x-6">
+      <div className="relative z-10 flex items-center space-x-8 w-full">
         {/* Album Art / Icon */}
         <div className="relative">
           <div className={`
-            w-24 h-24 bg-gradient-primary rounded-lg flex items-center justify-center
+            w-40 h-40 bg-gradient-primary rounded-xl flex items-center justify-center
             ${isPlaying ? 'animate-pulse-glow' : ''}
           `}>
-            <Disc3 className={`h-12 w-12 text-primary-foreground ${
+            <Disc3 className={`h-20 w-20 text-primary-foreground ${
               isPlaying ? 'animate-spin-slow' : ''
             }`} />
           </div>
           
           {isPlaying && (
-            <div className="absolute -inset-1 bg-gradient-accent rounded-lg blur opacity-30 animate-pulse-glow" />
+            <div className="absolute -inset-1 bg-gradient-accent rounded-xl blur opacity-30 animate-pulse-glow" />
           )}
         </div>
 
         {/* Track Info */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-2xl font-bold text-foreground truncate drop-shadow-sm">
+          <h2 className="text-4xl font-bold text-foreground truncate drop-shadow-sm mb-2">
             {track.name}
           </h2>
-          <p className="text-lg text-muted-foreground truncate mt-1 drop-shadow-sm">
+          <p className="text-2xl text-muted-foreground truncate mt-2 drop-shadow-sm">
             {track.artist || 'Unknown Artist'}
           </p>
-          <p className="text-sm text-muted-foreground/70 truncate mt-1 drop-shadow-sm">
+          <p className="text-lg text-muted-foreground/70 truncate mt-2 drop-shadow-sm">
             {track.album || 'Unknown Album'}
           </p>
           
           {/* Status Indicator */}
-          <div className="flex items-center mt-3">
+          <div className="flex items-center mt-4">
             <div className={`
-              w-2 h-2 rounded-full mr-2
+              w-3 h-3 rounded-full mr-3
               ${isPlaying ? 'bg-player-success animate-pulse' : 'bg-muted-foreground'}
             `} />
-            <span className="text-xs font-medium text-muted-foreground drop-shadow-sm">
+            <span className="text-sm font-medium text-muted-foreground drop-shadow-sm">
               {isPlaying ? 'Now Playing' : 'Paused'}
             </span>
           </div>

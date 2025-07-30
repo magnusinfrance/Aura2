@@ -16,11 +16,13 @@ import { Settings, Info, FileType, Sliders, Volume2 } from 'lucide-react';
 interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
   setLayout: (layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus') => void;
+  trackListView: 'list' | 'grid' | 'album' | 'minimal';
+  setTrackListView: (view: 'list' | 'grid' | 'album' | 'minimal') => void;
   audioElement?: HTMLAudioElement | null;
   audioContext?: AudioContext | null;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout, audioElement, audioContext }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout, trackListView, setTrackListView, audioElement, audioContext }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,6 +40,19 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout,
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Layout</label>
             <LayoutSelector layout={layout} setLayout={setLayout} />
+          </div>
+          <div className="mt-3">
+            <label className="text-xs text-muted-foreground mb-1 block">Track List View</label>
+            <select 
+              value={trackListView} 
+              onChange={(e) => setTrackListView(e.target.value as any)}
+              className="w-full px-2 py-1 text-xs bg-player-elevated border border-border rounded"
+            >
+              <option value="list">Detailed List</option>
+              <option value="grid">Grid View</option>
+              <option value="album">Album View</option>
+              <option value="minimal">Minimal Queue</option>
+            </select>
           </div>
         </div>
         
