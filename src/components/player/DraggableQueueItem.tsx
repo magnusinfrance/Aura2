@@ -107,21 +107,9 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
               </p>
             </div>
             <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 w-5 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPlay();
-                }}
-              >
-                {isCurrentTrack && isPlaying ? (
-                  <Pause className="h-2 w-2" />
-                ) : (
-                  <Play className="h-2 w-2" />
-                )}
-              </Button>
+              <span className="text-xs text-muted-foreground font-mono">
+                {formatDuration(track.duration)}
+              </span>
               <Button
                 variant="ghost"
                 size="sm"
@@ -153,23 +141,6 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
               <span className="text-xs text-muted-foreground font-mono">
                 {formatDuration(track.duration)}
               </span>
-
-              {/* Play/Pause Button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPlay();
-                }}
-              >
-                {isCurrentTrack && isPlaying ? (
-                  <Pause className="h-3 w-3" />
-                ) : (
-                  <Play className="h-3 w-3" />
-                )}
-              </Button>
 
               {/* Remove Button */}
               <Button

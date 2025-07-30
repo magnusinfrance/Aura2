@@ -147,9 +147,9 @@ export const TrackList: React.FC<TrackListProps> = ({
                   </Button>
                 </div>
                 
-                <div className="col-span-5 flex items-center space-x-2">
+                <div className="col-span-5 flex items-center space-x-3">
                   {trackDisplayMode === 'detailed' && (
-                    <div className="w-8 h-8 flex-shrink-0">
+                    <div className="w-6 h-6 flex-shrink-0">
                       <AlbumArt track={track} isPlaying={isCurrentTrack} size="sm" />
                     </div>
                   )}
