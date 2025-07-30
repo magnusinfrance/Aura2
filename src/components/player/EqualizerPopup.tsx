@@ -4,15 +4,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { EnhancedEqualizer } from './EnhancedEqualizer';
 import { Sliders } from 'lucide-react';
 
-interface EqualizerPopupProps {
-  audioContext: AudioContext | null;
-  audioElement: HTMLAudioElement | null;
-}
+interface EqualizerPopupProps {}
 
-export const EqualizerPopup: React.FC<EqualizerPopupProps> = ({ 
-  audioContext, 
-  audioElement 
-}) => {
+export const EqualizerPopup: React.FC<EqualizerPopupProps> = () => {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -28,10 +22,7 @@ export const EqualizerPopup: React.FC<EqualizerPopupProps> = ({
         sideOffset={8}
       >
         <div className="max-w-lg">
-          <EnhancedEqualizer 
-            audioContext={audioContext}
-            audioElement={audioElement}
-          />
+          <EnhancedEqualizer />
         </div>
       </PopoverContent>
     </Popover>

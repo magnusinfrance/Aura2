@@ -14,12 +14,13 @@ import { CompactNowPlaying } from './player/CompactNowPlaying';
 import { SettingsPanel } from './player/SettingsPanel';
 import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
 import { EqualizerPopup } from './player/EqualizerPopup';
+import { AudioProcessorProvider } from './player/AudioProcessor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
-import auraLogo from '@/assets/aura-logo.png';
+import auraLogo from '@/assets/aura-logo-transparent.png';
 
 export interface Track {
   id: string;
@@ -55,8 +56,6 @@ const MusicPlayerContent: React.FC = () => {
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -90,20 +89,6 @@ const MusicPlayerContent: React.FC = () => {
     }
   }, [volume]);
 
-  const initializeAudioContext = () => {
-    if (!audioContextRef.current && audioRef.current) {
-      const audioContext = new AudioContext();
-      const analyser = audioContext.createAnalyser();
-      
-      analyser.fftSize = 256;
-      
-      audioContextRef.current = audioContext;
-      analyserRef.current = analyser;
-      
-      // Note: Audio source connection will be handled by effects components
-      // to avoid conflicts with their processing chains
-    }
-  };
 
   const playTrack = (track: Track) => {
     if (audioRef.current) {
@@ -111,7 +96,6 @@ const MusicPlayerContent: React.FC = () => {
       setCurrentTrack(track);
       setIsPlaying(true);
       audioRef.current.play();
-      initializeAudioContext();
     }
   };
 
@@ -121,7 +105,6 @@ const MusicPlayerContent: React.FC = () => {
         audioRef.current.pause();
       } else {
         audioRef.current.play();
-        initializeAudioContext();
       }
       setIsPlaying(!isPlaying);
     }
@@ -254,8 +237,9 @@ const MusicPlayerContent: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
-      <audio ref={audioRef} />
+    <AudioProcessorProvider audioElement={audioRef.current}>
+      <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
+        <audio ref={audioRef} />
       
       {/* Compact Header */}
       <div className="bg-gradient-primary p-2 text-white shadow-player rounded-lg">
@@ -264,8 +248,7 @@ const MusicPlayerContent: React.FC = () => {
             <img 
               src={auraLogo} 
               alt="AUR:A Music Player" 
-              className="h-8 w-auto object-contain mix-blend-normal"
-              style={{ background: 'transparent' }}
+              className="h-8 w-auto object-contain"
             />
           </div>
           
@@ -316,7 +299,6 @@ const MusicPlayerContent: React.FC = () => {
               
               <Card className="bg-player-surface border-border h-48">
                 <EnhancedVisualizer 
-                  analyser={analyserRef.current}
                   isPlaying={isPlaying}
                 />
               </Card>
@@ -357,7 +339,6 @@ const MusicPlayerContent: React.FC = () => {
               
               <Card className="bg-player-surface border-border h-32">
                 <EnhancedVisualizer 
-                  analyser={analyserRef.current}
                   isPlaying={isPlaying}
                 />
               </Card>
@@ -398,7 +379,6 @@ const MusicPlayerContent: React.FC = () => {
               <div className="col-span-3">
                 <Card className="bg-player-surface border-border h-full">
                   <EnhancedVisualizer 
-                    analyser={analyserRef.current}
                     isPlaying={isPlaying}
                   />
                 </Card>
@@ -445,22 +425,16 @@ const MusicPlayerContent: React.FC = () => {
                 <FileManager onFilesAdd={addFiles} />
               </Card>
               
-              <Card className="bg-player-surface border-border">
-                <EnhancedAudioEffects 
-                  audioContext={audioContextRef.current}
-                  audioElement={audioRef.current}
-                />
-              </Card>
-              
-              <Card className="bg-player-surface border-border p-4">
-                <div className="space-y-3">
-                  <h3 className="text-sm font-semibold">Audio Controls</h3>
-                  <EqualizerPopup 
-                    audioContext={audioContextRef.current}
-                    audioElement={audioRef.current}
-                  />
-                </div>
-              </Card>
+                <Card className="bg-player-surface border-border">
+                  <EnhancedAudioEffects />
+                </Card>
+                
+                <Card className="bg-player-surface border-border p-4">
+                  <div className="space-y-3">
+                    <h3 className="text-sm font-semibold">Audio Controls</h3>
+                    <EqualizerPopup />
+                  </div>
+                </Card>
             </div>
 
             {/* Center Content */}
@@ -469,8 +443,7 @@ const MusicPlayerContent: React.FC = () => {
               <Card className="bg-player-surface border-border">
                 <NowPlaying 
                   track={currentTrack} 
-                  isPlaying={isPlaying} 
-                  analyser={analyserRef.current}
+                  isPlaying={isPlaying}
                 />
               </Card>
 
@@ -528,7 +501,8 @@ const MusicPlayerContent: React.FC = () => {
           }}
         />
       </div>
-    </div>
+      </div>
+    </AudioProcessorProvider>
   );
 };
 

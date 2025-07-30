@@ -2,14 +2,15 @@ import React from 'react';
 import { Track } from '../MusicPlayer';
 import { Music, Disc3 } from 'lucide-react';
 import { EnhancedVisualizer } from './EnhancedVisualizer';
+import { useAudioProcessor } from './AudioProcessor';
 
 interface NowPlayingProps {
   track: Track | null;
   isPlaying: boolean;
-  analyser?: AnalyserNode | null;
 }
 
-export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analyser }) => {
+export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying }) => {
+  const { analyserNode } = useAudioProcessor();
   if (!track) {
     return (
       <div className="p-8 text-center">
@@ -72,7 +73,7 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analys
         {/* Audio Visualizer */}
         <div className="w-48 h-24">
           <EnhancedVisualizer 
-            analyser={analyser}
+            analyser={analyserNode}
             isPlaying={isPlaying}
           />
         </div>
