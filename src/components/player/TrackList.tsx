@@ -30,7 +30,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   viewMode,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [trackDisplayMode, setTrackDisplayMode] = useState<TrackDisplayMode>('detailed');
+  const [trackDisplayMode, setTrackDisplayMode] = useState<TrackDisplayMode>('compact');
 
   const filteredTracks = tracks.filter(track =>
     track.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -149,7 +149,7 @@ export const TrackList: React.FC<TrackListProps> = ({
                 
                 <div className="col-span-5 flex items-center space-x-3">
                   {trackDisplayMode === 'detailed' && (
-                    <div className="w-4 h-4 flex-shrink-0">
+                    <div className="w-3 h-3 flex-shrink-0">
                       <AlbumArt track={track} isPlaying={isCurrentTrack} size="sm" />
                     </div>
                   )}

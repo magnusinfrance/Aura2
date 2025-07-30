@@ -284,9 +284,6 @@ export const RightSidePlaylist: React.FC<RightSidePlaylistProps> = ({
                         onClick={() => addTrackToPlaylist(track)}
                       >
                         <div className="flex items-center space-x-2 flex-1 min-w-0">
-                          <div className="w-6 h-6 bg-gradient-primary rounded flex items-center justify-center flex-shrink-0">
-                            <Music className="h-3 w-3 text-primary-foreground" />
-                          </div>
                           <div className="min-w-0">
                             <p className="font-medium text-xs truncate">{track.name}</p>
                             <p className="text-xs text-muted-foreground truncate">

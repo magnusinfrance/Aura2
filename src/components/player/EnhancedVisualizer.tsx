@@ -95,7 +95,7 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
       const computedStyle = getComputedStyle(document.documentElement);
       const primaryColor = computedStyle.getPropertyValue('--primary').trim();
       ctx.shadowColor = `hsl(${primaryColor})`;
-      ctx.shadowBlur = 10;
+      ctx.shadowBlur = 20;
       ctx.fillRect(x, canvas.height - barHeight, barWidth, barHeight);
       
       x += barWidth + 1;
@@ -107,10 +107,10 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     const computedStyle = getComputedStyle(document.documentElement);
     const primaryColor = computedStyle.getPropertyValue('--primary').trim();
     
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 4;
     ctx.strokeStyle = `hsl(${primaryColor})`;
     ctx.shadowColor = `hsl(${primaryColor})`;
-    ctx.shadowBlur = 15;
+    ctx.shadowBlur = 25;
     
     ctx.beginPath();
     
@@ -144,7 +144,7 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     const accentColor = computedStyle.getPropertyValue('--accent').trim();
     
     ctx.shadowColor = `hsl(${primaryColor})`;
-    ctx.shadowBlur = 20;
+    ctx.shadowBlur = 30;
     
     for (let i = 0; i < dataArray.length; i++) {
       const barHeight = (dataArray[i] / 255) * radius * 1.12;
@@ -178,8 +178,8 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
         const size = amplitude * 8;
         
         const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
-        gradient.addColorStop(0, `hsla(${260 + i}, 100%, 65%, ${amplitude})`);
-        gradient.addColorStop(1, 'transparent');
+        gradient.addColorStop(0, `hsla(${260 + i}, 100%, 65%, 1)`);
+        gradient.addColorStop(1, `hsla(${260 + i}, 100%, 65%, 0.3)`);
         
         ctx.fillStyle = gradient;
         ctx.beginPath();
@@ -207,7 +207,7 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
           imageData.data[pixelIndex] = rgb[0];     // R
           imageData.data[pixelIndex + 1] = rgb[1]; // G
           imageData.data[pixelIndex + 2] = rgb[2]; // B
-          imageData.data[pixelIndex + 3] = intensity * 255; // A
+          imageData.data[pixelIndex + 3] = Math.min(255, intensity * 400); // A - increased intensity
         }
       }
     }
