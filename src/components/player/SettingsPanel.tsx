@@ -17,9 +17,10 @@ interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
   setLayout: (layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus') => void;
   audioElement?: HTMLAudioElement | null;
+  audioContext?: AudioContext | null;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout, audioElement }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout, audioElement, audioContext }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -48,7 +49,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout,
         </DropdownMenuLabel>
         <div className="p-2">
           <EnhancedAudioEffects 
-            audioContext={null}
+            audioContext={audioContext}
             audioElement={audioElement}
           />
         </div>
@@ -61,7 +62,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout,
         </DropdownMenuLabel>
         <div className="p-2">
           <EqualizerPopup 
-            audioContext={null}
+            audioContext={audioContext}
             audioElement={audioElement}
           />
         </div>

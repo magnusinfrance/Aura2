@@ -57,6 +57,7 @@ const MusicPlayerContent: React.FC = () => {
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const analyserRef = useRef<AnalyserNode | null>(null);
+  const audioContextRef = useRef<AudioContext | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -113,6 +114,7 @@ const MusicPlayerContent: React.FC = () => {
           analyser.connect(audioContext.destination);
           
           analyserRef.current = analyser;
+          audioContextRef.current = audioContext;
         } catch (error) {
           console.warn('Failed to initialize audio context:', error);
         }
@@ -270,7 +272,12 @@ const MusicPlayerContent: React.FC = () => {
           
           {/* Controls */}
           <div className="flex items-center space-x-1">
-            <SettingsPanel layout={layout} setLayout={setLayout} audioElement={audioRef.current} />
+            <SettingsPanel 
+              layout={layout} 
+              setLayout={setLayout} 
+              audioElement={audioRef.current}
+              audioContext={audioContextRef.current}
+            />
             <Button
               variant="ghost"
               size="sm"
