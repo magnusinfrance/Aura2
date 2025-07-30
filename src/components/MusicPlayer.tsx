@@ -12,6 +12,8 @@ import { LayoutSelector } from './player/LayoutSelector';
 import { LeftSidePlaylist } from './player/LeftSidePlaylist';
 import { CompactNowPlaying } from './player/CompactNowPlaying';
 import { SettingsPanel } from './player/SettingsPanel';
+import { AudioEffects } from './player/AudioEffects';
+import { Equalizer } from './player/Equalizer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -414,12 +416,10 @@ const MusicPlayerContent: React.FC = () => {
             </div>
           </>
         ) : (
-          // Optimized Layout - Left playlist, center content, compact design
+          // Standard Layout - Balanced three-column design
           <>
-            {/* Main Grid */}
-            <div className="grid grid-cols-12 gap-2 h-[calc(100vh-8rem)]">
-              {/* Left Side - Playlist/Queue */}
-              <div className="col-span-12 lg:col-span-3">
+            {/* Left Side - Playlist/Queue */}
+            <div className="col-span-3">
                 <Card className="bg-player-surface border-border h-full">
                   <LeftSidePlaylist
                     currentPlaylist={currentPlaylistQueue}
@@ -436,38 +436,49 @@ const MusicPlayerContent: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Center Content */}
-              <div className="col-span-12 lg:col-span-9 space-y-2">
-                {/* Top: Visualizer */}
-                <Card className="bg-player-surface border-border h-32">
-                  <EnhancedVisualizer 
-                    analyser={analyserRef.current}
-                    isPlaying={isPlaying}
-                  />
-                </Card>
+            {/* Center Content */}
+            <div className="col-span-6 space-y-4">
+              {/* Visualizer */}
+              <Card className="bg-player-surface border-border h-48">
+                <EnhancedVisualizer 
+                  analyser={analyserRef.current}
+                  isPlaying={isPlaying}
+                />
+              </Card>
 
-                {/* Middle: Now Playing & File Manager */}
-                <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-12 lg:col-span-8">
-                    <CompactNowPlaying track={currentTrack} isPlaying={isPlaying} />
-                  </div>
-                  <div className="col-span-12 lg:col-span-4">
-                    <Card className="bg-player-surface border-border p-2">
-                      <FileManager onFilesAdd={addFiles} />
-                    </Card>
-                  </div>
-                </div>
+              {/* Now Playing */}
+              <CompactNowPlaying track={currentTrack} isPlaying={isPlaying} />
 
-                {/* Bottom: Track List */}
-                <Card className="bg-player-surface border-border flex-1">
-                  <TrackList 
-                    tracks={tracks}
-                    currentTrack={currentTrack}
-                    onTrackSelect={playTrack}
-                    viewMode="list"
-                  />
-                </Card>
-              </div>
+              {/* Track List */}
+              <Card className="bg-player-surface border-border flex-1">
+                <TrackList 
+                  tracks={tracks}
+                  currentTrack={currentTrack}
+                  onTrackSelect={playTrack}
+                  viewMode="list"
+                />
+              </Card>
+            </div>
+
+            {/* Right Side - File Manager & Audio Controls */}
+            <div className="col-span-3 space-y-4">
+              <Card className="bg-player-surface border-border p-4">
+                <FileManager onFilesAdd={addFiles} />
+              </Card>
+              
+              <Card className="bg-player-surface border-border">
+                <AudioEffects 
+                  audioContext={audioContextRef.current}
+                  audioElement={audioRef.current}
+                />
+              </Card>
+              
+              <Card className="bg-player-surface border-border">
+                <Equalizer 
+                  audioContext={audioContextRef.current}
+                  audioElement={audioRef.current}
+                />
+              </Card>
             </div>
           </>
         )}
