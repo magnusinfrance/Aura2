@@ -7,6 +7,7 @@ import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSo
 import { DraggableTrackItem } from './DraggableTrackItem';
 import { SaveQueueDialog } from './SaveQueueDialog';
 import { Track } from '../MusicPlayer';
+import auraLogo from '@/assets/aura-logo-transparent.png';
 import { 
   Search, 
   Plus, 
@@ -121,7 +122,7 @@ export const LeftSidePlaylist: React.FC<LeftSidePlaylistProps> = ({
       <div className="p-3 border-b border-border">
         <div className="flex items-center justify-between mb-2">
           <h3 className="font-semibold text-sm flex items-center gap-2">
-            <Music className="h-4 w-4" />
+            <img src={auraLogo} alt="Aura" className="h-4 w-4" />
             Queue ({currentPlaylist.length})
           </h3>
           <div className="flex items-center gap-1">

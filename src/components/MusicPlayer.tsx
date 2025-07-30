@@ -60,6 +60,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
   const [trackListView, setTrackListView] = useState<'list' | 'grid' | 'album' | 'minimal'>('list');
+  const [outputGain, setOutputGain] = useState(0.6);
 
   const { extractMetadata } = useAudioMetadata();
   
@@ -274,6 +275,8 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               setTrackListView={setTrackListView}
               audioElement={audioRef.current}
               audioContext={audioContext}
+              outputGain={outputGain}
+              onOutputGainChange={setOutputGain}
             />
             <Button
               variant="ghost"
@@ -328,7 +331,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               <Card className="bg-player-surface border-border overflow-hidden">
                 <div className="relative overflow-hidden">
                   {/* Background Visualizer */}
-                  <div className="absolute inset-0 opacity-40">
+                  <div className="absolute inset-0">
                     <EnhancedVisualizer 
                       analyser={analyserNode}
                       isPlaying={isPlaying}

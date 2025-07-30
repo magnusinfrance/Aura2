@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Slider } from '@/components/ui/slider';
 import { ThemeSelector } from './ThemeSelector';
 import { LayoutSelector } from './LayoutSelector';
 import { EnhancedAudioEffects } from './EnhancedAudioEffects';
 import { EqualizerPopup } from './EqualizerPopup';
+import { GainMeter } from './GainMeter';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,9 +22,20 @@ interface SettingsPanelProps {
   setTrackListView: (view: 'list' | 'grid' | 'album' | 'minimal') => void;
   audioElement?: HTMLAudioElement | null;
   audioContext?: AudioContext | null;
+  outputGain?: number;
+  onOutputGainChange?: (gain: number) => void;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout, trackListView, setTrackListView, audioElement, audioContext }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
+  layout, 
+  setLayout, 
+  trackListView, 
+  setTrackListView, 
+  audioElement, 
+  audioContext, 
+  outputGain = 0.6, 
+  onOutputGainChange 
+}) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -66,6 +79,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout,
           <EnhancedAudioEffects 
             audioContext={audioContext}
             audioElement={audioElement}
+            outputGain={outputGain}
           />
         </div>
         
@@ -92,6 +106,29 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout,
           <div>• MP3, FLAC, WAV, OGG</div>
           <div>• M4A, AAC, WMA</div>
           <div>• 16-bit & 24-bit support</div>
+        </div>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Volume2 className="h-4 w-4" />
+          Output Gain
+        </DropdownMenuLabel>
+        <div className="p-2">
+          <div className="flex items-center space-x-2 mb-3">
+            <Slider
+              value={[outputGain]}
+              onValueChange={(value) => onOutputGainChange?.(value[0])}
+              min={0.1}
+              max={1.0}
+              step={0.05}
+              className="flex-1"
+            />
+            <span className="text-xs text-muted-foreground min-w-[3ch]">
+              {Math.round(outputGain * 100)}%
+            </span>
+          </div>
+          <GainMeter audioElement={audioElement} audioContext={audioContext} />
         </div>
         
         <DropdownMenuSeparator />

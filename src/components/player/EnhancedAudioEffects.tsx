@@ -10,11 +10,12 @@ import { RotateCcw } from 'lucide-react';
 interface EnhancedAudioEffectsProps {
   audioContext?: AudioContext | null;
   audioElement?: HTMLAudioElement | null;
+  outputGain?: number;
 }
 
 import { useSharedAudioProcessor } from './SharedAudioProcessor';
 
-export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement }) => {
+export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement, outputGain = 0.6 }) => {
   const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain, resetAudioBus } = useSharedAudioProcessor();
   const [reverbEnabled, setReverbEnabled] = useState(false);
   const [reverbAmount, setReverbAmount] = useState([30]);
@@ -91,7 +92,7 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       
       // Output gain with reduced level to prevent distortion
       outputGainRef.current = audioContext.createGain();
-      outputGainRef.current.gain.value = 0.6; // Reduce output gain to prevent distortion
+      outputGainRef.current.gain.value = outputGain;
       
       // Setup delay feedback loop
       if (delayNodeRef.current && delayFeedbackRef.current) {
@@ -240,6 +241,13 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       updateEffectChain();
     }, 100);
   };
+
+  // Update output gain when prop changes
+  useEffect(() => {
+    if (outputGainRef.current) {
+      outputGainRef.current.gain.value = outputGain;
+    }
+  }, [outputGain]);
 
   useEffect(() => {
     // Only update effect chain if we have a stable audio context

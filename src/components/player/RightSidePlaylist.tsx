@@ -3,6 +3,7 @@ import { Track } from '../MusicPlayer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import auraLogo from '@/assets/aura-logo-transparent.png';
 import { 
   Play, 
   Pause, 
@@ -191,7 +192,7 @@ export const RightSidePlaylist: React.FC<RightSidePlaylistProps> = ({
         <div className="p-3 border-b border-border relative">
           <div className="flex items-center justify-between mb-2">
             <div className="flex items-center space-x-2">
-              <Music className="h-4 w-4 text-primary" />
+              <img src={auraLogo} alt="Aura" className="h-4 w-4" />
               <h3 className="font-semibold">Playing Queue</h3>
             </div>
             <div className="flex items-center space-x-1">

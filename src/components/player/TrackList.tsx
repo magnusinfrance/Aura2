@@ -3,6 +3,7 @@ import { Track } from '../MusicPlayer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { AlbumArt } from './AlbumArt';
+import auraLogo from '@/assets/aura-logo-transparent.png';
 import { 
   Play, 
   Pause, 
@@ -61,6 +62,14 @@ export const TrackList: React.FC<TrackListProps> = ({
 
   return (
     <div className="p-4">
+      {/* Header with Logo */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center space-x-2">
+          <img src={auraLogo} alt="Aura Logo" className="h-6 w-6" />
+          <h2 className="text-lg font-semibold">Music Library</h2>
+        </div>
+      </div>
+      
       {/* Search */}
       <div className="relative mb-4">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
