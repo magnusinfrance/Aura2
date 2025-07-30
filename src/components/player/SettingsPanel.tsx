@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { ThemeSelector } from './ThemeSelector';
 import { LayoutSelector } from './LayoutSelector';
+import { EnhancedAudioEffects } from './EnhancedAudioEffects';
+import { EqualizerPopup } from './EqualizerPopup';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,14 +11,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { Settings, Info, FileType } from 'lucide-react';
+import { Settings, Info, FileType, Sliders, Volume2 } from 'lucide-react';
 
 interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
   setLayout: (layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus') => void;
+  audioElement?: HTMLAudioElement | null;
 }
 
-export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout }) => {
+export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout, audioElement }) => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -35,6 +38,32 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout 
             <label className="text-xs text-muted-foreground mb-1 block">Layout</label>
             <LayoutSelector layout={layout} setLayout={setLayout} />
           </div>
+        </div>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Volume2 className="h-4 w-4" />
+          Audio Effects
+        </DropdownMenuLabel>
+        <div className="p-2">
+          <EnhancedAudioEffects 
+            audioContext={null}
+            audioElement={audioElement}
+          />
+        </div>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Sliders className="h-4 w-4" />
+          Equalizer
+        </DropdownMenuLabel>
+        <div className="p-2">
+          <EqualizerPopup 
+            audioContext={null}
+            audioElement={audioElement}
+          />
         </div>
         
         <DropdownMenuSeparator />

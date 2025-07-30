@@ -98,12 +98,24 @@ const MusicPlayerContent: React.FC = () => {
       setIsPlaying(true);
       audioRef.current.play();
       
-      // Initialize analyser for visualizer
+      // Initialize audio context and analyser for visualizer
       if (!analyserRef.current && audioRef.current) {
-        const audioContext = new AudioContext();
-        const analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        analyserRef.current = analyser;
+        try {
+          const audioContext = new AudioContext();
+          const analyser = audioContext.createAnalyser();
+          const source = audioContext.createMediaElementSource(audioRef.current);
+          
+          analyser.fftSize = 256;
+          analyser.smoothingTimeConstant = 0.8;
+          
+          // Connect: source -> analyser -> destination
+          source.connect(analyser);
+          analyser.connect(audioContext.destination);
+          
+          analyserRef.current = analyser;
+        } catch (error) {
+          console.warn('Failed to initialize audio context:', error);
+        }
       }
     }
   };
@@ -258,7 +270,7 @@ const MusicPlayerContent: React.FC = () => {
           
           {/* Controls */}
           <div className="flex items-center space-x-1">
-            <SettingsPanel layout={layout} setLayout={setLayout} />
+            <SettingsPanel layout={layout} setLayout={setLayout} audioElement={audioRef.current} />
             <Button
               variant="ghost"
               size="sm"
@@ -423,28 +435,11 @@ const MusicPlayerContent: React.FC = () => {
         ) : (
           // Standard Layout - Balanced three-column design
           <>
-            {/* Left Side - File Manager & Audio Controls */}
+            {/* Left Side - File Manager */}
             <div className="col-span-3 space-y-4">
               <Card className="bg-player-surface border-border p-4">
                 <FileManager onFilesAdd={addFiles} />
               </Card>
-              
-                <Card className="bg-player-surface border-border">
-                  <EnhancedAudioEffects 
-                    audioContext={null}
-                    audioElement={audioRef.current}
-                  />
-                </Card>
-                
-                <Card className="bg-player-surface border-border p-4">
-                  <div className="space-y-3">
-                    <h3 className="text-sm font-semibold">Audio Controls</h3>
-                  <EqualizerPopup 
-                    audioContext={null}
-                    audioElement={audioRef.current}
-                  />
-                  </div>
-                </Card>
             </div>
 
             {/* Center Content */}
@@ -462,7 +457,7 @@ const MusicPlayerContent: React.FC = () => {
               <Card className="bg-player-surface border-border flex-1 relative overflow-hidden">
                 <div 
                   className="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain"
-                  style={{ backgroundImage: `url(${auraLogo})` }}
+                  style={{ backgroundImage: `url(/lovable-uploads/db049072-b49c-43cc-8c24-20f9689b97c9.png)` }}
                 />
                 <div className="relative z-10">
                   <TrackList 
