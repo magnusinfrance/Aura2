@@ -1,10 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { PlayerControls } from './player/PlayerControls';
 import { TrackList } from './player/TrackList';
 import { NowPlaying } from './player/NowPlaying';
 import { EnhancedVisualizer } from './player/EnhancedVisualizer';
 import { FileManager } from './player/FileManager';
-
 import { RightSidePlaylist } from './player/RightSidePlaylist';
 import { AlbumArt } from './player/AlbumArt';
 import { ThemeSelector } from './player/ThemeSelector';
@@ -14,123 +13,16 @@ import { CompactNowPlaying } from './player/CompactNowPlaying';
 import { SettingsPanel } from './player/SettingsPanel';
 import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
 import { EqualizerPopup } from './player/EqualizerPopup';
-import { SharedAudioProcessorProvider } from './player/SharedAudioProcessor';
+import { SharedAudioProcessorProvider, useSharedAudioProcessor } from './player/SharedAudioProcessor';
 import { QueueManager } from './player/QueueManager';
 import { TrackListMinimal } from './player/TrackListMinimal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeProvider } from '@/hooks/useTheme';
+import { useAudioMetadata } from '@/hooks/useAudioMetadata';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
 import auraLogo from '@/assets/aura-logo-transparent.png';
-
-// Helper function to extract audio metadata
-const extractAudioMetadata = async (file: File): Promise<{
-  title?: string;
-  artist?: string;
-  album?: string;
-  duration?: number;
-}> => {
-  return new Promise((resolve) => {
-    const audio = new Audio();
-    const objectUrl = URL.createObjectURL(file);
-    
-    audio.addEventListener('loadedmetadata', async () => {
-      try {
-        // Basic metadata
-        const metadata = { duration: audio.duration };
-        
-        // Try to extract ID3 tags
-        const id3Data = await extractID3Tags(file);
-        resolve({ ...metadata, ...id3Data });
-      } catch (error) {
-        resolve({ duration: audio.duration });
-      } finally {
-        URL.revokeObjectURL(objectUrl);
-      }
-    });
-    
-    audio.addEventListener('error', () => {
-      URL.revokeObjectURL(objectUrl);
-      resolve({});
-    });
-    
-    audio.src = objectUrl;
-  });
-};
-
-// Simple ID3 tag extraction
-const extractID3Tags = async (file: File): Promise<{
-  title?: string;
-  artist?: string;
-  album?: string;
-}> => {
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    const dataView = new DataView(arrayBuffer);
-    
-    // Check for ID3v2 header
-    if (dataView.getUint8(0) === 0x49 && // 'I'
-        dataView.getUint8(1) === 0x44 && // 'D'
-        dataView.getUint8(2) === 0x33) { // '3'
-      
-      const size = (dataView.getUint8(6) << 21) |
-                  (dataView.getUint8(7) << 14) |
-                  (dataView.getUint8(8) << 7) |
-                  dataView.getUint8(9);
-      
-      const metadata: any = {};
-      let position = 10;
-      
-      while (position < size + 10) {
-        const frameId = String.fromCharCode(
-          dataView.getUint8(position),
-          dataView.getUint8(position + 1),
-          dataView.getUint8(position + 2),
-          dataView.getUint8(position + 3)
-        );
-        
-        if (frameId === '\0\0\0\0') break;
-        
-        const frameSize = (dataView.getUint8(position + 4) << 24) |
-                         (dataView.getUint8(position + 5) << 16) |
-                         (dataView.getUint8(position + 6) << 8) |
-                         dataView.getUint8(position + 7);
-        
-        position += 10;
-        
-        if (frameSize > 0) {
-          try {
-            const bytes = new Uint8Array(arrayBuffer, position + 1, frameSize - 1);
-            const text = new TextDecoder('utf-8').decode(bytes).replace(/\0.*$/g, '').trim();
-            
-            switch (frameId) {
-              case 'TIT2':
-                metadata.title = text;
-                break;
-              case 'TPE1':
-                metadata.artist = text;
-                break;
-              case 'TALB':
-                metadata.album = text;
-                break;
-            }
-          } catch (e) {
-            // Ignore decode errors
-          }
-        }
-        
-        position += frameSize;
-      }
-      
-      return metadata;
-    }
-    
-    return {};
-  } catch (error) {
-    return {};
-  }
-};
 
 export interface Track {
   id: string;
@@ -149,8 +41,11 @@ export interface Playlist {
   createdAt: Date;
 }
 
-const MusicPlayerContent: React.FC = () => {
-  console.log('MusicPlayer component is rendering');
+interface MusicPlayerContentProps {
+  audioRef: React.RefObject<HTMLAudioElement>;
+}
+
+const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -163,20 +58,21 @@ const MusicPlayerContent: React.FC = () => {
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'album'>('list');
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
-
-  const handleQueueReorder = (reorderedTracks: Track[]) => {
-    setCurrentPlaylistQueue(reorderedTracks);
-  };
-
-  const handleRemoveFromQueue = (track: Track) => {
-    setCurrentPlaylistQueue(prev => prev.filter(t => t.id !== track.id));
-  };
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
   const [trackListView, setTrackListView] = useState<'list' | 'grid' | 'album' | 'minimal'>('list');
 
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const analyserRef = useRef<AnalyserNode | null>(null);
-  const audioContextRef = useRef<AudioContext | null>(null);
+  const { extractMetadata } = useAudioMetadata();
+  
+  // Get analyser from shared audio processor
+  const { analyserNode, audioContext } = useSharedAudioProcessor();
+
+  const handleQueueReorder = useCallback((reorderedTracks: Track[]) => {
+    setCurrentPlaylistQueue(reorderedTracks);
+  }, []);
+
+  const handleRemoveFromQueue = useCallback((track: Track) => {
+    setCurrentPlaylistQueue(prev => prev.filter(t => t.id !== track.id));
+  }, []);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -210,36 +106,14 @@ const MusicPlayerContent: React.FC = () => {
     }
   }, [volume]);
 
-
-  const playTrack = (track: Track) => {
+  const playTrack = useCallback((track: Track) => {
     if (audioRef.current) {
       audioRef.current.src = track.url;
       setCurrentTrack(track);
       setIsPlaying(true);
       audioRef.current.play();
-      
-      // Initialize audio context and analyser for visualizer
-      if (!analyserRef.current && audioRef.current) {
-        try {
-          const audioContext = new AudioContext();
-          const analyser = audioContext.createAnalyser();
-          const source = audioContext.createMediaElementSource(audioRef.current);
-          
-          analyser.fftSize = 256;
-          analyser.smoothingTimeConstant = 0.8;
-          
-          // Connect: source -> analyser -> destination
-          source.connect(analyser);
-          analyser.connect(audioContext.destination);
-          
-          analyserRef.current = analyser;
-          audioContextRef.current = audioContext;
-        } catch (error) {
-          console.warn('Failed to initialize audio context:', error);
-        }
-      }
     }
-  };
+  }, []);
 
   const togglePlayPause = () => {
     if (audioRef.current) {
@@ -291,12 +165,12 @@ const MusicPlayerContent: React.FC = () => {
     }
   };
 
-  const addFiles = async (files: File[]) => {
+  const addFiles = useCallback(async (files: File[]) => {
     const newTracks: Track[] = await Promise.all(files.map(async (file) => {
       const url = URL.createObjectURL(file);
       
-      // Extract full metadata including artist and album
-      const metadata = await extractAudioMetadata(file);
+      // Extract full metadata including artist, album, and album art
+      const metadata = await extractMetadata(file);
       
       return {
         id: Math.random().toString(36),
@@ -312,7 +186,7 @@ const MusicPlayerContent: React.FC = () => {
     setTracks(prev => [...prev, ...newTracks]);
     // Automatically add to queue
     setCurrentPlaylistQueue(prev => [...prev, ...newTracks]);
-  };
+  }, [extractMetadata]);
 
   const handleSavePlaylist = (name: string, tracks: Track[]) => {
     const newPlaylist: Playlist = {
@@ -324,56 +198,57 @@ const MusicPlayerContent: React.FC = () => {
     setPlaylists(prev => [...prev, newPlaylist]);
   };
 
-  return (
-    <SharedAudioProcessorProvider audioElement={audioRef.current}>
-      <audio ref={audioRef} />
-      
-      {layout === 'mini' ? (
-        <div className="fixed bottom-4 right-4 w-80 bg-player-surface/95 backdrop-blur-lg border border-border rounded-lg shadow-2xl">
-          <div className="p-4">
-            <div className="flex items-center space-x-3 mb-3">
-              <AlbumArt track={currentTrack} isPlaying={isPlaying} size="sm" />
-              <div className="flex-1 min-w-0">
-                <h4 className="font-medium text-sm truncate">
-                  {currentTrack?.name || 'No track'}
-                </h4>
-                <p className="text-xs text-muted-foreground truncate">
-                  {currentTrack?.artist || 'Select a song'}
-                </p>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setLayout('standard')}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </Button>
+  if (layout === 'mini') {
+    return (
+      <div className="fixed bottom-4 right-4 w-80 bg-player-surface/95 backdrop-blur-lg border border-border rounded-lg shadow-2xl">
+        <audio ref={audioRef} />
+        <div className="p-4">
+          <div className="flex items-center space-x-3 mb-3">
+            <AlbumArt track={currentTrack} isPlaying={isPlaying} size="sm" />
+            <div className="flex-1 min-w-0">
+              <h4 className="font-medium text-sm truncate">
+                {currentTrack?.name || 'No track'}
+              </h4>
+              <p className="text-xs text-muted-foreground truncate">
+                {currentTrack?.artist || 'Select a song'}
+              </p>
             </div>
-            
-            <PlayerControls
-              isPlaying={isPlaying}
-              currentTime={currentTime}
-              duration={duration}
-              volume={volume}
-              isShuffled={isShuffled}
-              repeatMode={repeatMode}
-              onPlayPause={togglePlayPause}
-              onNext={handleNext}
-              onPrevious={handlePrevious}
-              onSeek={handleSeek}
-              onVolumeChange={setVolume}
-              onShuffleToggle={() => setIsShuffled(!isShuffled)}
-              onRepeatToggle={() => {
-                const modes: Array<'none' | 'one' | 'all'> = ['none', 'one', 'all'];
-                const currentIndex = modes.indexOf(repeatMode);
-                setRepeatMode(modes[(currentIndex + 1) % modes.length]);
-              }}
-            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setLayout('standard')}
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
           </div>
+          
+          <PlayerControls
+            isPlaying={isPlaying}
+            currentTime={currentTime}
+            duration={duration}
+            volume={volume}
+            isShuffled={isShuffled}
+            repeatMode={repeatMode}
+            onPlayPause={togglePlayPause}
+            onNext={handleNext}
+            onPrevious={handlePrevious}
+            onSeek={handleSeek}
+            onVolumeChange={setVolume}
+            onShuffleToggle={() => setIsShuffled(!isShuffled)}
+            onRepeatToggle={() => {
+              const modes: Array<'none' | 'one' | 'all'> = ['none', 'one', 'all'];
+              const currentIndex = modes.indexOf(repeatMode);
+              setRepeatMode(modes[(currentIndex + 1) % modes.length]);
+            }}
+          />
         </div>
-      ) : (
+      </div>
+    );
+  }
 
-        <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
+  return (
+    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
+      <audio ref={audioRef} />
       
       {/* Compact Header */}
       <div className="bg-gradient-primary p-2 text-white shadow-player rounded-lg">
@@ -390,7 +265,7 @@ const MusicPlayerContent: React.FC = () => {
               trackListView={trackListView}
               setTrackListView={setTrackListView}
               audioElement={audioRef.current}
-              audioContext={audioContextRef.current}
+              audioContext={audioContext}
             />
             <Button
               variant="ghost"
@@ -436,7 +311,7 @@ const MusicPlayerContent: React.FC = () => {
               
               <Card className="bg-player-surface border-border h-48">
                 <EnhancedVisualizer 
-                  analyser={analyserRef.current}
+                  analyser={analyserNode}
                   isPlaying={isPlaying}
                 />
               </Card>
@@ -478,7 +353,7 @@ const MusicPlayerContent: React.FC = () => {
               
               <Card className="bg-player-surface border-border h-32">
               <EnhancedVisualizer 
-                analyser={analyserRef.current}
+                analyser={analyserNode}
                 isPlaying={isPlaying}
               />
               </Card>
@@ -519,7 +394,7 @@ const MusicPlayerContent: React.FC = () => {
               <div className="col-span-3">
                 <Card className="bg-player-surface border-border h-full">
                    <EnhancedVisualizer 
-                     analyser={analyserRef.current}
+                     analyser={analyserNode}
                      isPlaying={isPlaying}
                    />
                 </Card>
@@ -574,7 +449,7 @@ const MusicPlayerContent: React.FC = () => {
                 <NowPlaying 
                   track={currentTrack} 
                   isPlaying={isPlaying} 
-                  analyser={analyserRef.current}
+                  analyser={analyserNode}
                 />
               </Card>
 
@@ -646,8 +521,23 @@ const MusicPlayerContent: React.FC = () => {
           }}
         />
       </div>
-        </div>
-      )}
+    </div>
+  );
+};
+
+const MusicPlayerWrapper: React.FC = () => {
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [audioElement, setAudioElement] = useState<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      setAudioElement(audioRef.current);
+    }
+  }, []);
+
+  return (
+    <SharedAudioProcessorProvider audioElement={audioElement}>
+      <MusicPlayerContent audioRef={audioRef} />
     </SharedAudioProcessorProvider>
   );
 };
@@ -655,7 +545,7 @@ const MusicPlayerContent: React.FC = () => {
 export const MusicPlayer: React.FC = () => {
   return (
     <ThemeProvider>
-      <MusicPlayerContent />
+      <MusicPlayerWrapper />
     </ThemeProvider>
   );
 };
