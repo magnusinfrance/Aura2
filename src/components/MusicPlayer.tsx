@@ -324,57 +324,56 @@ const MusicPlayerContent: React.FC = () => {
     setPlaylists(prev => [...prev, newPlaylist]);
   };
 
-  if (layout === 'mini') {
-    return (
-      <div className="fixed bottom-4 right-4 w-80 bg-player-surface/95 backdrop-blur-lg border border-border rounded-lg shadow-2xl">
-        <audio ref={audioRef} />
-        <div className="p-4">
-          <div className="flex items-center space-x-3 mb-3">
-            <AlbumArt track={currentTrack} isPlaying={isPlaying} size="sm" />
-            <div className="flex-1 min-w-0">
-              <h4 className="font-medium text-sm truncate">
-                {currentTrack?.name || 'No track'}
-              </h4>
-              <p className="text-xs text-muted-foreground truncate">
-                {currentTrack?.artist || 'Select a song'}
-              </p>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setLayout('standard')}
-            >
-              <Maximize2 className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <PlayerControls
-            isPlaying={isPlaying}
-            currentTime={currentTime}
-            duration={duration}
-            volume={volume}
-            isShuffled={isShuffled}
-            repeatMode={repeatMode}
-            onPlayPause={togglePlayPause}
-            onNext={handleNext}
-            onPrevious={handlePrevious}
-            onSeek={handleSeek}
-            onVolumeChange={setVolume}
-            onShuffleToggle={() => setIsShuffled(!isShuffled)}
-            onRepeatToggle={() => {
-              const modes: Array<'none' | 'one' | 'all'> = ['none', 'one', 'all'];
-              const currentIndex = modes.indexOf(repeatMode);
-              setRepeatMode(modes[(currentIndex + 1) % modes.length]);
-            }}
-          />
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
+    <SharedAudioProcessorProvider audioElement={audioRef.current}>
       <audio ref={audioRef} />
+      
+      {layout === 'mini' ? (
+        <div className="fixed bottom-4 right-4 w-80 bg-player-surface/95 backdrop-blur-lg border border-border rounded-lg shadow-2xl">
+          <div className="p-4">
+            <div className="flex items-center space-x-3 mb-3">
+              <AlbumArt track={currentTrack} isPlaying={isPlaying} size="sm" />
+              <div className="flex-1 min-w-0">
+                <h4 className="font-medium text-sm truncate">
+                  {currentTrack?.name || 'No track'}
+                </h4>
+                <p className="text-xs text-muted-foreground truncate">
+                  {currentTrack?.artist || 'Select a song'}
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setLayout('standard')}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            <PlayerControls
+              isPlaying={isPlaying}
+              currentTime={currentTime}
+              duration={duration}
+              volume={volume}
+              isShuffled={isShuffled}
+              repeatMode={repeatMode}
+              onPlayPause={togglePlayPause}
+              onNext={handleNext}
+              onPrevious={handlePrevious}
+              onSeek={handleSeek}
+              onVolumeChange={setVolume}
+              onShuffleToggle={() => setIsShuffled(!isShuffled)}
+              onRepeatToggle={() => {
+                const modes: Array<'none' | 'one' | 'all'> = ['none', 'one', 'all'];
+                const currentIndex = modes.indexOf(repeatMode);
+                setRepeatMode(modes[(currentIndex + 1) % modes.length]);
+              }}
+            />
+          </div>
+        </div>
+      ) : (
+
+        <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
       
       {/* Compact Header */}
       <div className="bg-gradient-primary p-2 text-white shadow-player rounded-lg">
@@ -647,7 +646,9 @@ const MusicPlayerContent: React.FC = () => {
           }}
         />
       </div>
-    </div>
+        </div>
+      )}
+    </SharedAudioProcessorProvider>
   );
 };
 
