@@ -1,7 +1,8 @@
 import React from 'react';
 import { Track } from '../MusicPlayer';
-import { Music, Disc3 } from 'lucide-react';
+import { Music } from 'lucide-react';
 import { EnhancedVisualizer } from './EnhancedVisualizer';
+import { AlbumArt } from './AlbumArt';
 
 
 interface NowPlayingProps {
@@ -39,25 +40,16 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analys
       
       {/* Content overlay */}
       <div className="relative z-10 flex items-center space-x-8 w-full">
-        {/* Album Art / Icon */}
+        {/* Album Art */}
         <div className="relative">
-          <div className={`
-            w-40 h-40 bg-gradient-primary rounded-xl flex items-center justify-center
-            ${isPlaying ? 'animate-pulse-glow' : ''}
-          `}>
-            <Disc3 className={`h-20 w-20 text-primary-foreground ${
-              isPlaying ? 'animate-spin-slow' : ''
-            }`} />
-          </div>
-          
-          {isPlaying && (
-            <div className="absolute -inset-1 bg-gradient-accent rounded-xl blur opacity-30 animate-pulse-glow" />
-          )}
+          <AlbumArt track={track} isPlaying={isPlaying} size="lg" />
         </div>
 
         {/* Track Info */}
         <div className="flex-1 min-w-0">
-          <h2 className="text-4xl font-bold text-foreground truncate drop-shadow-sm mb-2">
+          <h2 className={`font-bold text-foreground truncate drop-shadow-sm mb-2 ${
+            track.name.length > 30 ? 'text-2xl' : track.name.length > 20 ? 'text-3xl' : 'text-4xl'
+          }`}>
             {track.name}
           </h2>
           <p className="text-2xl text-muted-foreground truncate mt-2 drop-shadow-sm">

@@ -163,13 +163,19 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       }
       
       // Connect wet paths to output
-      wetNodes.forEach(node => node.connect(outputGainRef.current));
+      wetNodes.forEach(node => {
+        if (outputGainRef.current) {
+          node.connect(outputGainRef.current);
+        }
+      });
 
-      // Connect through shared audio chain
-      if (compressionEnabled && compressorRef.current) {
-        connectToChain(outputGainRef.current, compressorRef.current);
-      } else {
-        connectToChain(outputGainRef.current);
+      // Connect through shared audio chain only if we have nodes to connect
+      if (outputGainRef.current) {
+        if (compressionEnabled && compressorRef.current) {
+          connectToChain(outputGainRef.current, compressorRef.current);
+        } else {
+          connectToChain(outputGainRef.current);
+        }
       }
     } catch (error) {
       console.warn('Effect chain update failed:', error);

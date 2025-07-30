@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { DraggableQueueItem } from './DraggableQueueItem';
+import { DraggableTrackItem } from './DraggableTrackItem';
 import { SaveQueueDialog } from './SaveQueueDialog';
 import { Track } from '../MusicPlayer';
 import { 
@@ -222,7 +222,7 @@ export const LeftSidePlaylist: React.FC<LeftSidePlaylistProps> = ({
               >
                 <div className="p-2 space-y-1">
                   {filteredPlaylist.map((track, index) => (
-                    <DraggableQueueItem
+                    <DraggableTrackItem
                       key={track.id}
                       track={track}
                       index={index}
@@ -230,7 +230,7 @@ export const LeftSidePlaylist: React.FC<LeftSidePlaylistProps> = ({
                       isPlaying={isPlaying && currentTrack?.id === track.id}
                       onPlay={() => onTrackSelect(track)}
                       onRemove={() => removeTrackFromPlaylist(track.id)}
-                      compact={true}
+                      onDoubleClick={() => onTrackSelect(track)}
                     />
                   ))}
                 </div>

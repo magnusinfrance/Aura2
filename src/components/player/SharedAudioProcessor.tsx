@@ -91,22 +91,36 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
   };
 
   const connectToChain = (inputNode: AudioNode, outputNode?: AudioNode) => {
-    if (!masterGainNode) return;
+    if (!masterGainNode || !analyserNode) return;
     
     try {
-      // Disconnect the current chain
-      if (analyserNode && masterGainNode) {
-        analyserNode.disconnect(masterGainNode);
+      // Check if connection already exists
+      if (connectedNodes.current.has(inputNode)) {
+        return;
       }
       
-      // Insert the new node
-      if (analyserNode) {
-        analyserNode.connect(inputNode);
-        inputNode.connect(outputNode || masterGainNode);
-        connectedNodes.current.add(inputNode);
+      // Safely disconnect existing connections
+      try {
+        analyserNode.disconnect(masterGainNode);
+      } catch (e) {
+        // Connection might not exist, continue
       }
+      
+      // Connect new chain: analyser -> inputNode -> (outputNode || masterGain)
+      analyserNode.connect(inputNode);
+      inputNode.connect(outputNode || masterGainNode);
+      connectedNodes.current.add(inputNode);
+      
     } catch (error) {
       console.warn('Failed to connect node to chain:', error);
+      // Restore direct connection as fallback
+      try {
+        if (analyserNode && masterGainNode) {
+          analyserNode.connect(masterGainNode);
+        }
+      } catch (fallbackError) {
+        console.warn('Fallback connection failed:', fallbackError);
+      }
     }
   };
 
@@ -115,9 +129,13 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
       node.disconnect();
       connectedNodes.current.delete(node);
       
-      // Restore direct connection
-      if (analyserNode && masterGainNode) {
-        analyserNode.connect(masterGainNode);
+      // Restore direct connection if no other nodes are connected
+      if (connectedNodes.current.size === 0 && analyserNode && masterGainNode) {
+        try {
+          analyserNode.connect(masterGainNode);
+        } catch (e) {
+          // Connection might already exist
+        }
       }
     } catch (error) {
       console.warn('Failed to disconnect node from chain:', error);
