@@ -112,30 +112,32 @@ export const useAudioMetadata = () => {
                   metadata.album = text;
                   break;
                 case 'APIC':
-                  // Album art frame - extract image
-                  try {
-                    const imageStart = position + 1;
-                    let mimeTypeEnd = imageStart;
-                    
-                    // Find null terminator for MIME type
-                    while (mimeTypeEnd < position + frameSize && dataView.getUint8(mimeTypeEnd) !== 0) {
-                      mimeTypeEnd++;
-                    }
-                    
-                    const mimeType = new TextDecoder().decode(new Uint8Array(arrayBuffer, imageStart, mimeTypeEnd - imageStart));
-                    
-                    // Skip picture type and description
-                    let imageDataStart = mimeTypeEnd + 2;
-                    while (imageDataStart < position + frameSize && dataView.getUint8(imageDataStart) !== 0) {
+                  // Album art frame - extract image only if not already present
+                  if (!metadata.albumArt) {
+                    try {
+                      const imageStart = position + 1;
+                      let mimeTypeEnd = imageStart;
+                      
+                      // Find null terminator for MIME type
+                      while (mimeTypeEnd < position + frameSize && dataView.getUint8(mimeTypeEnd) !== 0) {
+                        mimeTypeEnd++;
+                      }
+                      
+                      const mimeType = new TextDecoder().decode(new Uint8Array(arrayBuffer, imageStart, mimeTypeEnd - imageStart));
+                      
+                      // Skip picture type and description
+                      let imageDataStart = mimeTypeEnd + 2;
+                      while (imageDataStart < position + frameSize && dataView.getUint8(imageDataStart) !== 0) {
+                        imageDataStart++;
+                      }
                       imageDataStart++;
+                      
+                      const imageData = new Uint8Array(arrayBuffer, imageDataStart, position + frameSize - imageDataStart);
+                      const blob = new Blob([imageData], { type: mimeType });
+                      metadata.albumArt = URL.createObjectURL(blob);
+                    } catch (e) {
+                      console.warn('Failed to extract album art:', e);
                     }
-                    imageDataStart++;
-                    
-                    const imageData = new Uint8Array(arrayBuffer, imageDataStart, position + frameSize - imageDataStart);
-                    const blob = new Blob([imageData], { type: mimeType });
-                    metadata.albumArt = URL.createObjectURL(blob);
-                  } catch (e) {
-                    console.warn('Failed to extract album art:', e);
                   }
                   break;
               }

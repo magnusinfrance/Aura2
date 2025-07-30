@@ -7,6 +7,7 @@ interface SharedAudioProcessorContextType {
   masterGainNode: GainNode | null;
   connectToChain: (inputNode: AudioNode, outputNode?: AudioNode) => void;
   disconnectFromChain: (node: AudioNode) => void;
+  resetAudioBus: () => void;
 }
 
 const SharedAudioProcessorContext = createContext<SharedAudioProcessorContextType | null>(null);
@@ -142,6 +143,34 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     }
   };
 
+  const resetAudioBus = () => {
+    cleanup();
+    // If we have an audio element, reinitialize
+    if (audioElement) {
+      try {
+        const ctx = new AudioContext();
+        const source = ctx.createMediaElementSource(audioElement);
+        const analyser = ctx.createAnalyser();
+        const masterGain = ctx.createGain();
+
+        analyser.fftSize = 256;
+        analyser.smoothingTimeConstant = 0.8;
+        masterGain.gain.value = 1.0;
+
+        source.connect(analyser);
+        analyser.connect(masterGain);
+        masterGain.connect(ctx.destination);
+
+        setAudioContext(ctx);
+        setSourceNode(source);
+        setAnalyserNode(analyser);
+        setMasterGainNode(masterGain);
+      } catch (error) {
+        console.warn('Failed to reset audio bus:', error);
+      }
+    }
+  };
+
   const value = {
     audioContext,
     sourceNode,
@@ -149,6 +178,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     masterGainNode,
     connectToChain,
     disconnectFromChain,
+    resetAudioBus,
   };
 
   return (

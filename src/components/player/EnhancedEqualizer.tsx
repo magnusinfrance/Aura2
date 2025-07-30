@@ -33,7 +33,7 @@ const EQ_PRESETS = {
 import { useSharedAudioProcessor } from './SharedAudioProcessor';
 
 export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement }) => {
-  const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain } = useSharedAudioProcessor();
+  const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain, resetAudioBus } = useSharedAudioProcessor();
   
   const [gains, setGains] = useState<number[]>(Array(7).fill(0));
   const [selectedPreset, setSelectedPreset] = useState<string>('flat');
@@ -150,6 +150,12 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
     }
   };
 
+  const resetAudioBusAndEqualizer = () => {
+    resetEqualizer();
+    setIsEnabled(false);
+    resetAudioBus();
+  };
+
   const toggleEqualizer = () => {
     setIsEnabled(!isEnabled);
   };
@@ -218,8 +224,11 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Button variant="ghost" size="sm" onClick={resetEqualizer}>
+          <Button variant="ghost" size="sm" onClick={resetEqualizer} title="Reset Equalizer">
             <RotateCcw className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={resetAudioBusAndEqualizer} title="Reset Audio Bus">
+            <span className="text-xs">🔄</span>
           </Button>
         </div>
       </div>

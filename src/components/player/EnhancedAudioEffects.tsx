@@ -15,8 +15,7 @@ interface EnhancedAudioEffectsProps {
 import { useSharedAudioProcessor } from './SharedAudioProcessor';
 
 export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement }) => {
-  console.log('EnhancedAudioEffects rendering with:', { externalAudioContext, externalAudioElement });
-  const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain } = useSharedAudioProcessor();
+  const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain, resetAudioBus } = useSharedAudioProcessor();
   const [reverbEnabled, setReverbEnabled] = useState(false);
   const [reverbAmount, setReverbAmount] = useState([30]);
   const [delayEnabled, setDelayEnabled] = useState(false);
@@ -41,11 +40,11 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   const outputGainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
-    console.log('EnhancedAudioEffects useEffect trigger:', { audioContext, masterGainNode });
-    if (audioContext && masterGainNode) {
+    // Only setup effects when needed, not automatically
+    if (audioContext && masterGainNode && (reverbEnabled || delayEnabled || echoEnabled || compressionEnabled)) {
       setupEffects();
     }
-  }, [audioContext, masterGainNode]);
+  }, [audioContext, masterGainNode, reverbEnabled, delayEnabled, echoEnabled, compressionEnabled]);
 
   const createReverbImpulse = (duration: number, decay: number) => {
     if (!audioContext) return null;
@@ -229,6 +228,11 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
     updateEffectChain();
   };
 
+  const resetAudioBusAndEffects = () => {
+    resetEffects();
+    resetAudioBus();
+  };
+
   useEffect(() => {
     // Only update effect chain if we have a stable audio context
     if (audioContext && masterGainNode && analyserNode) {
@@ -248,9 +252,14 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h3 className="text-sm font-semibold">Audio Effects</h3>
-        <Button variant="ghost" size="sm" onClick={resetEffects}>
-          <RotateCcw className="h-3 w-3" />
-        </Button>
+        <div className="flex gap-1">
+          <Button variant="ghost" size="sm" onClick={resetEffects} title="Reset Effects">
+            <RotateCcw className="h-3 w-3" />
+          </Button>
+          <Button variant="ghost" size="sm" onClick={resetAudioBusAndEffects} title="Reset Audio Bus">
+            <span className="text-xs">🔄</span>
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="reverb" className="w-full">
