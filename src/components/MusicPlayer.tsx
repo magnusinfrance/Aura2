@@ -255,7 +255,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   }
 
   return (
-    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
+    <div className="min-h-screen w-full bg-gradient-secondary p-2 space-y-2 pb-20">
       <audio ref={audioRef} />
       
       {/* Compact Header */}
@@ -287,11 +287,11 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
         </div>
       </div>
 
-      {/* Main Layout */}
+      {/* Main Layout - Fully Responsive */}
       <div className={`${
-        layout === 'widescreen' ? 'max-w-full mx-4' : 'max-w-7xl mx-auto'
+        layout === 'widescreen' ? 'w-full px-2' : 'w-full max-w-none px-2'
       } ${
-        layout === 'compact' || layout === 'focus' ? 'space-y-4' : 'grid grid-cols-12 gap-4'
+        layout === 'compact' || layout === 'focus' ? 'space-y-4' : 'grid grid-cols-12 gap-4 min-h-[calc(100vh-8rem)]'
       }`}>
         {layout === 'compact' ? (
           // Compact Layout
@@ -444,14 +444,14 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
           // Standard Layout - Balanced three-column design
           <>
             {/* Left Side - File Manager */}
-            <div className="col-span-3 space-y-4">
+            <div className="col-span-12 lg:col-span-3 space-y-4">
               <Card className="bg-player-surface border-border p-4">
                 <FileManager onFilesAdd={addFiles} />
               </Card>
             </div>
 
             {/* Center Content */}
-            <div className="col-span-6 space-y-4">
+            <div className="col-span-12 lg:col-span-6 space-y-4">
               {/* Now Playing with Visualizer */}
               <Card className="bg-player-surface border-border">
                 <NowPlaying 
@@ -487,7 +487,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
             </div>
 
             {/* Right Side - Playlist/Queue */}
-            <div className="col-span-3">
+            <div className="col-span-12 lg:col-span-3">
               <Card className="bg-player-surface border-border h-full">
                 <LeftSidePlaylist
                   currentPlaylist={currentPlaylistQueue}
