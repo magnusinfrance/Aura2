@@ -12,8 +12,8 @@ import { LayoutSelector } from './player/LayoutSelector';
 import { LeftSidePlaylist } from './player/LeftSidePlaylist';
 import { CompactNowPlaying } from './player/CompactNowPlaying';
 import { SettingsPanel } from './player/SettingsPanel';
-import { AudioEffects } from './player/AudioEffects';
-import { Equalizer } from './player/Equalizer';
+import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
+import { EnhancedEqualizer } from './player/EnhancedEqualizer';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -92,14 +92,14 @@ const MusicPlayerContent: React.FC = () => {
     if (!audioContextRef.current && audioRef.current) {
       const audioContext = new AudioContext();
       const analyser = audioContext.createAnalyser();
-      const source = audioContext.createMediaElementSource(audioRef.current);
       
       analyser.fftSize = 256;
-      source.connect(analyser);
-      analyser.connect(audioContext.destination);
       
       audioContextRef.current = audioContext;
       analyserRef.current = analyser;
+      
+      // Note: Audio source connection will be handled by effects components
+      // to avoid conflicts with their processing chains
     }
   };
 
@@ -164,12 +164,28 @@ const MusicPlayerContent: React.FC = () => {
     }
   };
 
-  const addFiles = (files: File[]) => {
-    const newTracks: Track[] = files.map(file => ({
-      id: Math.random().toString(36),
-      name: file.name.replace(/\.[^/.]+$/, ""),
-      url: URL.createObjectURL(file),
-      file,
+  const addFiles = async (files: File[]) => {
+    const newTracks: Track[] = await Promise.all(files.map(async (file) => {
+      const url = URL.createObjectURL(file);
+      
+      // Create audio element to get duration
+      const audio = new Audio(url);
+      const duration = await new Promise<number>((resolve) => {
+        audio.addEventListener('loadedmetadata', () => {
+          resolve(audio.duration || 0);
+        });
+        audio.addEventListener('error', () => {
+          resolve(0);
+        });
+      });
+      
+      return {
+        id: Math.random().toString(36),
+        name: file.name.replace(/\.[^/.]+$/, ""),
+        duration: duration,
+        url,
+        file,
+      };
     }));
     
     setTracks(prev => [...prev, ...newTracks]);
@@ -418,23 +434,26 @@ const MusicPlayerContent: React.FC = () => {
         ) : (
           // Standard Layout - Balanced three-column design
           <>
-            {/* Left Side - Playlist/Queue */}
-            <div className="col-span-3">
-                <Card className="bg-player-surface border-border h-full">
-                  <LeftSidePlaylist
-                    currentPlaylist={currentPlaylistQueue}
-                    setCurrentPlaylist={setCurrentPlaylistQueue}
-                    allTracks={tracks}
-                    currentTrack={currentTrack}
-                    isPlaying={isPlaying}
-                    onTrackSelect={playTrack}
-                    onNext={handleNext}
-                    isShuffled={isShuffled}
-                    onShuffleToggle={() => setIsShuffled(!isShuffled)}
-                    onSavePlaylist={handleSavePlaylist}
-                  />
-                </Card>
-              </div>
+            {/* Left Side - File Manager & Audio Controls */}
+            <div className="col-span-3 space-y-4">
+              <Card className="bg-player-surface border-border p-4">
+                <FileManager onFilesAdd={addFiles} />
+              </Card>
+              
+              <Card className="bg-player-surface border-border">
+                <EnhancedAudioEffects 
+                  audioContext={audioContextRef.current}
+                  audioElement={audioRef.current}
+                />
+              </Card>
+              
+              <Card className="bg-player-surface border-border">
+                <EnhancedEqualizer 
+                  audioContext={audioContextRef.current}
+                  audioElement={audioRef.current}
+                />
+              </Card>
+            </div>
 
             {/* Center Content */}
             <div className="col-span-6 space-y-4">
@@ -460,26 +479,23 @@ const MusicPlayerContent: React.FC = () => {
               </Card>
             </div>
 
-            {/* Right Side - File Manager & Audio Controls */}
-            <div className="col-span-3 space-y-4">
-              <Card className="bg-player-surface border-border p-4">
-                <FileManager onFilesAdd={addFiles} />
-              </Card>
-              
-              <Card className="bg-player-surface border-border">
-                <AudioEffects 
-                  audioContext={audioContextRef.current}
-                  audioElement={audioRef.current}
-                />
-              </Card>
-              
-              <Card className="bg-player-surface border-border">
-                <Equalizer 
-                  audioContext={audioContextRef.current}
-                  audioElement={audioRef.current}
-                />
-              </Card>
-            </div>
+            {/* Right Side - Playlist/Queue */}
+            <div className="col-span-3">
+                <Card className="bg-player-surface border-border h-full">
+                  <LeftSidePlaylist
+                    currentPlaylist={currentPlaylistQueue}
+                    setCurrentPlaylist={setCurrentPlaylistQueue}
+                    allTracks={tracks}
+                    currentTrack={currentTrack}
+                    isPlaying={isPlaying}
+                    onTrackSelect={playTrack}
+                    onNext={handleNext}
+                    isShuffled={isShuffled}
+                    onShuffleToggle={() => setIsShuffled(!isShuffled)}
+                    onSavePlaylist={handleSavePlaylist}
+                  />
+                </Card>
+              </div>
           </>
         )}
       </div>
