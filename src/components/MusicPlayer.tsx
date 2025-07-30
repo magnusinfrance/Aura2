@@ -65,7 +65,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const { extractMetadata } = useAudioMetadata();
   
   // Get analyser from shared audio processor
-  const { analyserNode, audioContext } = useSharedAudioProcessor();
+  const { analyserNode, audioContext, masterGainNode } = useSharedAudioProcessor();
 
   const handleQueueReorder = useCallback((reorderedTracks: Track[]) => {
     setCurrentPlaylistQueue(reorderedTracks);
@@ -106,6 +106,13 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
       audioRef.current.volume = volume;
     }
   }, [volume]);
+
+  // Apply output gain to master gain node
+  useEffect(() => {
+    if (masterGainNode) {
+      masterGainNode.gain.value = outputGain;
+    }
+  }, [outputGain, masterGainNode]);
 
   const playTrack = useCallback((track: Track) => {
     if (audioRef.current) {
@@ -275,6 +282,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               setTrackListView={setTrackListView}
               audioElement={audioRef.current}
               audioContext={audioContext}
+              analyser={analyserNode}
               outputGain={outputGain}
               onOutputGainChange={setOutputGain}
             />

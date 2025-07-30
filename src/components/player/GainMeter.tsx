@@ -1,55 +1,34 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 interface GainMeterProps {
-  audioElement?: HTMLAudioElement | null;
-  audioContext?: AudioContext | null;
+  analyser?: AnalyserNode | null;
 }
 
-export const GainMeter: React.FC<GainMeterProps> = ({ audioElement, audioContext }) => {
+export const GainMeter: React.FC<GainMeterProps> = ({ analyser }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number>();
-  const analyserRef = useRef<AnalyserNode | null>(null);
   const dataArrayRef = useRef<Uint8Array | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    if (!audioElement || !audioContext || !canvasRef.current) return;
+    if (!analyser || !canvasRef.current) return;
 
-    try {
-      // Create analyser for gain metering
-      const analyser = audioContext.createAnalyser();
-      analyser.fftSize = 256;
-      analyser.smoothingTimeConstant = 0.3;
-
-      // Connect audio source to analyser
-      const source = audioContext.createMediaElementSource(audioElement);
-      source.connect(analyser);
-      analyser.connect(audioContext.destination);
-
-      analyserRef.current = analyser;
-      dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
-      setIsInitialized(true);
-
-      return () => {
-        source.disconnect();
-        analyser.disconnect();
-      };
-    } catch (error) {
-      console.warn('Error setting up gain meter:', error);
-    }
-  }, [audioElement, audioContext]);
+    // Use the existing analyser from the shared audio processor
+    dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
+    setIsInitialized(true);
+  }, [analyser]);
 
   useEffect(() => {
-    if (!isInitialized || !canvasRef.current || !analyserRef.current || !dataArrayRef.current) return;
+    if (!isInitialized || !canvasRef.current || !analyser || !dataArrayRef.current) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
     const animate = () => {
-      if (!analyserRef.current || !dataArrayRef.current) return;
+      if (!analyser || !dataArrayRef.current) return;
 
-      analyserRef.current.getByteFrequencyData(dataArrayRef.current);
+      analyser.getByteFrequencyData(dataArrayRef.current);
       
       // Calculate RMS values for left and right channels (simplified)
       const dataArray = dataArrayRef.current;
@@ -135,7 +114,7 @@ export const GainMeter: React.FC<GainMeterProps> = ({ audioElement, audioContext
         cancelAnimationFrame(animationRef.current);
       }
     };
-  }, [isInitialized]);
+  }, [isInitialized, analyser]);
 
   return (
     <div className="w-full h-20 bg-player-elevated rounded border border-border">

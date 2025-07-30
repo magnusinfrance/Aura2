@@ -22,6 +22,7 @@ interface SettingsPanelProps {
   setTrackListView: (view: 'list' | 'grid' | 'album' | 'minimal') => void;
   audioElement?: HTMLAudioElement | null;
   audioContext?: AudioContext | null;
+  analyser?: AnalyserNode | null;
   outputGain?: number;
   onOutputGainChange?: (gain: number) => void;
 }
@@ -33,6 +34,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   setTrackListView, 
   audioElement, 
   audioContext, 
+  analyser,
   outputGain = 0.6, 
   onOutputGainChange 
 }) => {
@@ -128,7 +130,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
               {Math.round(outputGain * 100)}%
             </span>
           </div>
-          <GainMeter audioElement={audioElement} audioContext={audioContext} />
+          <GainMeter analyser={analyser} />
         </div>
         
         <DropdownMenuSeparator />
