@@ -6,12 +6,13 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RotateCcw } from 'lucide-react';
-import { useAudioProcessor } from './AudioProcessor';
 
-interface EnhancedAudioEffectsProps {}
+interface EnhancedAudioEffectsProps {
+  audioContext: AudioContext | null;
+  audioElement: HTMLAudioElement | null;
+}
 
-export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = () => {
-  const { audioContext, sourceNode, masterGainNode, connectToChain, disconnectFromChain } = useAudioProcessor();
+export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext, audioElement }) => {
   const [reverbEnabled, setReverbEnabled] = useState(false);
   const [reverbAmount, setReverbAmount] = useState([30]);
   const [delayEnabled, setDelayEnabled] = useState(false);
@@ -36,15 +37,15 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = () => {
   const outputGainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
-    if (audioContext && sourceNode && !sourceRef.current) {
+    if (audioContext && audioElement && !sourceRef.current) {
       try {
-        sourceRef.current = sourceNode;
+        sourceRef.current = audioContext.createMediaElementSource(audioElement);
         setupEffects();
       } catch (error) {
         console.warn('Enhanced Audio effects setup failed:', error);
       }
     }
-  }, [audioContext, sourceNode]);
+  }, [audioContext, audioElement]);
 
   const createReverbImpulse = (duration: number, decay: number) => {
     if (!audioContext) return null;
@@ -163,12 +164,12 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = () => {
       dryNode.connect(outputGainRef.current);
       wetNodes.forEach(node => node.connect(outputGainRef.current));
 
-      // Connect to master gain instead of directly to destination
-      if (compressionEnabled && compressorRef.current && masterGainNode) {
+      // Apply compression to final output
+      if (compressionEnabled && compressorRef.current) {
         outputGainRef.current.connect(compressorRef.current);
-        compressorRef.current.connect(masterGainNode);
-      } else if (masterGainNode) {
-        outputGainRef.current.connect(masterGainNode);
+        compressorRef.current.connect(audioContext.destination);
+      } else {
+        outputGainRef.current.connect(audioContext.destination);
       }
     } catch (error) {
       console.warn('Effect chain update failed:', error);

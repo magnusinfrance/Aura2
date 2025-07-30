@@ -97,6 +97,14 @@ const MusicPlayerContent: React.FC = () => {
       setCurrentTrack(track);
       setIsPlaying(true);
       audioRef.current.play();
+      
+      // Initialize analyser for visualizer
+      if (!analyserRef.current && audioRef.current) {
+        const audioContext = new AudioContext();
+        const analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        analyserRef.current = analyser;
+      }
     }
   };
 
@@ -422,13 +430,19 @@ const MusicPlayerContent: React.FC = () => {
               </Card>
               
                 <Card className="bg-player-surface border-border">
-                  <EnhancedAudioEffects />
+                  <EnhancedAudioEffects 
+                    audioContext={null}
+                    audioElement={audioRef.current}
+                  />
                 </Card>
                 
                 <Card className="bg-player-surface border-border p-4">
                   <div className="space-y-3">
                     <h3 className="text-sm font-semibold">Audio Controls</h3>
-                    <EqualizerPopup />
+                  <EqualizerPopup 
+                    audioContext={null}
+                    audioElement={audioRef.current}
+                  />
                   </div>
                 </Card>
             </div>

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Activity, Zap, Circle, BarChart3, Waves, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useAudioProcessor } from './AudioProcessor';
+
 
 interface EnhancedVisualizerProps {
   analyser?: AnalyserNode | null;
@@ -12,11 +12,9 @@ interface EnhancedVisualizerProps {
 type VisualizationType = 'bars' | 'wave' | 'circle' | 'particles' | 'spectrum';
 
 export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({ 
-  analyser: propAnalyser, 
+  analyser, 
   isPlaying 
 }) => {
-  const { analyserNode } = useAudioProcessor();
-  const analyser = propAnalyser || analyserNode;
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationIdRef = useRef<number>();
   const [visualizationType, setVisualizationType] = useState<VisualizationType>('bars');

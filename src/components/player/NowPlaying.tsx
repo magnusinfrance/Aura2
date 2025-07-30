@@ -2,7 +2,7 @@ import React from 'react';
 import { Track } from '../MusicPlayer';
 import { Music, Disc3 } from 'lucide-react';
 import { EnhancedVisualizer } from './EnhancedVisualizer';
-import { useAudioProcessor } from './AudioProcessor';
+
 
 interface NowPlayingProps {
   track: Track | null;

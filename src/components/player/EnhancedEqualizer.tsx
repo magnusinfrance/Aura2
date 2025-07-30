@@ -8,9 +8,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RotateCcw, Save } from 'lucide-react';
-import { useAudioProcessor } from './AudioProcessor';
 
-interface EnhancedEqualizerProps {}
+
+interface EnhancedEqualizerProps {
+  audioContext: AudioContext | null;
+  audioElement: HTMLAudioElement | null;
+}
 
 const EQ_FREQUENCIES = [60, 170, 350, 1000, 3500, 6000, 12000];
 
@@ -27,8 +30,7 @@ const EQ_PRESETS = {
   treble: [-3, -2, 1, 3, 5, 8, 9],
 };
 
-export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = () => {
-  const { audioContext, sourceNode, masterGainNode, connectToChain, disconnectFromChain } = useAudioProcessor();
+export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioContext, audioElement }) => {
   
   const [gains, setGains] = useState<number[]>(Array(7).fill(0));
   const [selectedPreset, setSelectedPreset] = useState<string>('flat');
@@ -42,17 +44,19 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = () => {
   const gainNodeRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
-    if (audioContext && sourceNode) {
+    if (audioContext && audioElement) {
       setupEqualizer();
     }
-  }, [audioContext, sourceNode]);
+  }, [audioContext, audioElement]);
 
   const setupEqualizer = () => {
-    if (!audioContext || !sourceNode) return;
+    if (!audioContext || !audioElement) return;
 
     try {
-      // Use existing source node
-      sourceRef.current = sourceNode;
+      // Create source node if it doesn't exist
+      if (!sourceRef.current) {
+        sourceRef.current = audioContext.createMediaElementSource(audioElement);
+      }
 
       // Create gain node
       gainNodeRef.current = audioContext.createGain();
@@ -74,7 +78,7 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = () => {
   };
 
   const connectEqualizer = () => {
-    if (!sourceRef.current || !gainNodeRef.current || filtersRef.current.length === 0 || !masterGainNode) return;
+    if (!sourceRef.current || !gainNodeRef.current || filtersRef.current.length === 0 || !audioContext) return;
 
     try {
       // Disconnect filters from previous connections
@@ -87,7 +91,7 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = () => {
       });
 
       if (isEnabled) {
-        // Connect through equalizer chain to master gain
+        // Connect through equalizer chain
         let currentNode: AudioNode = sourceRef.current;
         
         filtersRef.current.forEach(filter => {
@@ -95,10 +99,12 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = () => {
           currentNode = filter;
         });
         
-        // Connect last filter to master gain instead of directly to destination
-        currentNode.connect(masterGainNode);
+        // Connect last filter to destination
+        currentNode.connect(audioContext.destination);
+      } else {
+        // Direct connection when disabled
+        sourceRef.current.connect(audioContext.destination);
       }
-      // If disabled, the source is already connected through the master gain
     } catch (error) {
       console.warn('EQ connection failed:', error);
     }
