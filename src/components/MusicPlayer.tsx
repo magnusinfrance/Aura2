@@ -222,6 +222,14 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
             </Button>
           </div>
           
+          {/* Mini Visualizer */}
+          <div className="h-16 mb-3 rounded overflow-hidden">
+            <EnhancedVisualizer 
+              analyser={analyserNode}
+              isPlaying={isPlaying}
+            />
+          </div>
+          
           <PlayerControls
             isPlaying={isPlaying}
             currentTime={currentTime}

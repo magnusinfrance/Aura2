@@ -90,12 +90,7 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
         )}
       </div>
 
-      {/* Album Art */}
-      {!compact && (
-        <div className="w-8 h-8 bg-gradient-primary rounded flex items-center justify-center flex-shrink-0">
-          <Music className="h-4 w-4 text-primary-foreground" />
-        </div>
-      )}
+      {/* Removed album art - now shown in central tracklist */}
 
       {/* Track Info */}
       <div className="flex-1 min-w-0">
@@ -106,6 +101,9 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
                 isCurrentTrack ? 'text-primary' : 'text-foreground'
               }`}>
                 {track.name}
+              </p>
+              <p className="text-xs text-muted-foreground/80 truncate">
+                {track.artist || 'Unknown Artist'}
               </p>
             </div>
             <div className="flex items-center space-x-1">

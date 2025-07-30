@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import { Track } from '../MusicPlayer';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { AlbumArt } from './AlbumArt';
 import { 
   Play, 
   Pause, 
   Music, 
   Search,
   Clock,
-  Disc3
+  Disc3,
+  List,
+  Grid3X3
 } from 'lucide-react';
 
 interface TrackListProps {
@@ -18,6 +21,8 @@ interface TrackListProps {
   viewMode: 'list' | 'grid' | 'album';
 }
 
+type TrackDisplayMode = 'compact' | 'detailed';
+
 export const TrackList: React.FC<TrackListProps> = ({
   tracks,
   currentTrack,
@@ -25,6 +30,7 @@ export const TrackList: React.FC<TrackListProps> = ({
   viewMode,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  const [trackDisplayMode, setTrackDisplayMode] = useState<TrackDisplayMode>('detailed');
 
   const filteredTracks = tracks.filter(track =>
     track.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -66,11 +72,19 @@ export const TrackList: React.FC<TrackListProps> = ({
         />
       </div>
 
-      {/* Track Count */}
+      {/* Track Count and Display Toggle */}
       <div className="flex justify-between items-center mb-4">
         <p className="text-sm text-muted-foreground">
           {filteredTracks.length} track{filteredTracks.length !== 1 ? 's' : ''}
         </p>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-6 w-6 p-0"
+          onClick={() => setTrackDisplayMode(trackDisplayMode === 'compact' ? 'detailed' : 'compact')}
+        >
+          {trackDisplayMode === 'compact' ? <List className="h-3 w-3" /> : <Grid3X3 className="h-3 w-3" />}
+        </Button>
       </div>
 
       {/* Track List */}
@@ -134,9 +148,11 @@ export const TrackList: React.FC<TrackListProps> = ({
                 </div>
                 
                 <div className="col-span-5 flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-primary rounded flex items-center justify-center flex-shrink-0">
-                    <Music className="h-4 w-4 text-primary-foreground" />
-                  </div>
+                  {trackDisplayMode === 'detailed' && (
+                    <div className="w-8 h-8 flex-shrink-0">
+                      <AlbumArt track={track} isPlaying={isCurrentTrack} size="sm" />
+                    </div>
+                  )}
                   <div className="min-w-0">
                     <p className={`font-medium text-sm truncate ${
                       isCurrentTrack ? 'text-primary' : 'text-foreground'
@@ -186,13 +202,8 @@ export const TrackList: React.FC<TrackListProps> = ({
                 onClick={() => onTrackSelect(track)}
               >
                 <div className="relative mb-3">
-                  <div className={`
-                    w-full aspect-square bg-gradient-primary rounded-lg flex items-center justify-center
-                    ${isCurrentTrack ? 'animate-pulse-glow' : ''}
-                  `}>
-                    <Disc3 className={`h-8 w-8 text-primary-foreground ${
-                      isCurrentTrack ? 'animate-spin-slow' : ''
-                    }`} />
+                  <div className="w-full aspect-square">
+                    <AlbumArt track={track} isPlaying={isCurrentTrack} size="md" />
                   </div>
                   
                   <Button
@@ -232,8 +243,8 @@ export const TrackList: React.FC<TrackListProps> = ({
           ).map(([album, albumTracks]) => (
             <div key={album} className="bg-player-elevated rounded-lg p-4">
               <div className="flex items-center space-x-4 mb-4">
-                <div className="w-16 h-16 bg-gradient-primary rounded-lg flex items-center justify-center">
-                  <Disc3 className="h-8 w-8 text-primary-foreground" />
+                <div className="w-16 h-16">
+                  <AlbumArt track={albumTracks[0]} isPlaying={false} size="md" />
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold">{album}</h3>

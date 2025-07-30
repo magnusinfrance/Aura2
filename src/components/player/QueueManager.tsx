@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -19,7 +19,8 @@ import { DraggableQueueItem } from './DraggableQueueItem';
 import { TrackListMinimal } from './TrackListMinimal';
 import { Track } from '../MusicPlayer';
 import { Card } from '@/components/ui/card';
-import { Music } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Music, List, Grid3X3 } from 'lucide-react';
 
 interface QueueManagerProps {
   tracks: Track[];
@@ -31,6 +32,8 @@ interface QueueManagerProps {
   trackListView: 'list' | 'grid' | 'album' | 'minimal';
 }
 
+type QueueDisplayMode = 'compact' | 'detailed';
+
 export const QueueManager: React.FC<QueueManagerProps> = ({
   tracks,
   currentTrack,
@@ -40,6 +43,7 @@ export const QueueManager: React.FC<QueueManagerProps> = ({
   onReorder,
   trackListView,
 }) => {
+  const [queueDisplayMode, setQueueDisplayMode] = useState<QueueDisplayMode>('detailed');
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -76,7 +80,17 @@ export const QueueManager: React.FC<QueueManagerProps> = ({
     return (
       <Card className="bg-player-surface border-border">
         <div className="p-4">
-          <h3 className="text-sm font-medium text-foreground mb-3">Queue ({tracks.length})</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-foreground">Queue ({tracks.length})</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 w-6 p-0"
+              onClick={() => setQueueDisplayMode(queueDisplayMode === 'compact' ? 'detailed' : 'compact')}
+            >
+              {queueDisplayMode === 'compact' ? <List className="h-3 w-3" /> : <Grid3X3 className="h-3 w-3" />}
+            </Button>
+          </div>
           <TrackListMinimal
             tracks={tracks}
             currentTrack={currentTrack}
@@ -91,7 +105,17 @@ export const QueueManager: React.FC<QueueManagerProps> = ({
   return (
     <Card className="bg-player-surface border-border">
       <div className="p-4">
-        <h3 className="text-sm font-medium text-foreground mb-3">Queue ({tracks.length})</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-medium text-foreground">Queue ({tracks.length})</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 w-6 p-0"
+            onClick={() => setQueueDisplayMode(queueDisplayMode === 'compact' ? 'detailed' : 'compact')}
+          >
+            {queueDisplayMode === 'compact' ? <List className="h-3 w-3" /> : <Grid3X3 className="h-3 w-3" />}
+          </Button>
+        </div>
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
@@ -109,7 +133,7 @@ export const QueueManager: React.FC<QueueManagerProps> = ({
                   isPlaying={currentTrack?.id === track.id && isPlaying}
                   onPlay={() => onTrackSelect(track)}
                   onRemove={() => onTrackRemove(track)}
-                  compact={false}
+                  compact={queueDisplayMode === 'compact'}
                 />
               ))}
             </div>
