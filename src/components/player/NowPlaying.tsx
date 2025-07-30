@@ -7,10 +7,10 @@ import { useAudioProcessor } from './AudioProcessor';
 interface NowPlayingProps {
   track: Track | null;
   isPlaying: boolean;
+  analyser?: AnalyserNode | null;
 }
 
-export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying }) => {
-  const { analyserNode } = useAudioProcessor();
+export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying, analyser }) => {
   if (!track) {
     return (
       <div className="p-8 text-center">
@@ -73,7 +73,7 @@ export const NowPlaying: React.FC<NowPlayingProps> = ({ track, isPlaying }) => {
         {/* Audio Visualizer */}
         <div className="w-48 h-24">
           <EnhancedVisualizer 
-            analyser={analyserNode}
+            analyser={analyser}
             isPlaying={isPlaying}
           />
         </div>

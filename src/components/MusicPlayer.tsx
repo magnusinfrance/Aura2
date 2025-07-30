@@ -56,6 +56,7 @@ const MusicPlayerContent: React.FC = () => {
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -237,19 +238,14 @@ const MusicPlayerContent: React.FC = () => {
   }
 
   return (
-    <AudioProcessorProvider audioElement={audioRef.current}>
-      <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
-        <audio ref={audioRef} />
+    <div className="min-h-screen bg-gradient-secondary p-2 space-y-2 pb-20">
+      <audio ref={audioRef} />
       
       {/* Compact Header */}
       <div className="bg-gradient-primary p-2 text-white shadow-player rounded-lg">
         <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <img 
-              src={auraLogo} 
-              alt="AUR:A Music Player" 
-              className="h-8 w-auto object-contain"
-            />
+          <div className="flex items-center justify-center">
+            <h1 className="text-lg font-bold">AUR:A Music Media Player</h1>
           </div>
           
           {/* Controls */}
@@ -443,38 +439,45 @@ const MusicPlayerContent: React.FC = () => {
               <Card className="bg-player-surface border-border">
                 <NowPlaying 
                   track={currentTrack} 
-                  isPlaying={isPlaying}
+                  isPlaying={isPlaying} 
+                  analyser={analyserRef.current}
                 />
               </Card>
 
               {/* Track List */}
-              <Card className="bg-player-surface border-border flex-1">
-                <TrackList 
-                  tracks={tracks}
-                  currentTrack={currentTrack}
-                  onTrackSelect={playTrack}
-                  viewMode="list"
+              <Card className="bg-player-surface border-border flex-1 relative overflow-hidden">
+                <div 
+                  className="absolute inset-0 opacity-10 bg-center bg-no-repeat bg-contain"
+                  style={{ backgroundImage: `url(${auraLogo})` }}
                 />
+                <div className="relative z-10">
+                  <TrackList 
+                    tracks={tracks}
+                    currentTrack={currentTrack}
+                    onTrackSelect={playTrack}
+                    viewMode="list"
+                  />
+                </div>
               </Card>
             </div>
 
             {/* Right Side - Playlist/Queue */}
             <div className="col-span-3">
-                <Card className="bg-player-surface border-border h-full">
-                  <LeftSidePlaylist
-                    currentPlaylist={currentPlaylistQueue}
-                    setCurrentPlaylist={setCurrentPlaylistQueue}
-                    allTracks={tracks}
-                    currentTrack={currentTrack}
-                    isPlaying={isPlaying}
-                    onTrackSelect={playTrack}
-                    onNext={handleNext}
-                    isShuffled={isShuffled}
-                    onShuffleToggle={() => setIsShuffled(!isShuffled)}
-                    onSavePlaylist={handleSavePlaylist}
-                  />
-                </Card>
-              </div>
+              <Card className="bg-player-surface border-border h-full">
+                <LeftSidePlaylist
+                  currentPlaylist={currentPlaylistQueue}
+                  setCurrentPlaylist={setCurrentPlaylistQueue}
+                  allTracks={tracks}
+                  currentTrack={currentTrack}
+                  isPlaying={isPlaying}
+                  onTrackSelect={playTrack}
+                  onNext={handleNext}
+                  isShuffled={isShuffled}
+                  onShuffleToggle={() => setIsShuffled(!isShuffled)}
+                  onSavePlaylist={handleSavePlaylist}
+                />
+              </Card>
+            </div>
           </>
         )}
       </div>
@@ -501,8 +504,7 @@ const MusicPlayerContent: React.FC = () => {
           }}
         />
       </div>
-      </div>
-    </AudioProcessorProvider>
+    </div>
   );
 };
 
