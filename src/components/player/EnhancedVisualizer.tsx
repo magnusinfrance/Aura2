@@ -89,7 +89,7 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     const gradient = createGradient(ctx, canvas);
 
     for (let i = 0; i < dataArray.length; i++) {
-      const barHeight = (dataArray[i] / 255) * canvas.height;
+      const barHeight = (dataArray[i] / 255) * canvas.height * 1.4;
       
       ctx.fillStyle = gradient;
       const computedStyle = getComputedStyle(document.documentElement);
@@ -118,7 +118,7 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     let x = 0;
     
     for (let i = 0; i < dataArray.length; i++) {
-      const v = (dataArray[i] / 255) * canvas.height;
+      const v = (dataArray[i] / 255) * canvas.height * 1.4;
       const y = canvas.height - v;
       
       if (i === 0) {
@@ -147,7 +147,7 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     ctx.shadowBlur = 20;
     
     for (let i = 0; i < dataArray.length; i++) {
-      const barHeight = (dataArray[i] / 255) * radius * 0.8;
+      const barHeight = (dataArray[i] / 255) * radius * 1.12;
       const angle = (i / dataArray.length) * Math.PI * 2;
       
       const x1 = centerX + Math.cos(angle) * (radius - barHeight);

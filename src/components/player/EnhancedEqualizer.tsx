@@ -11,8 +11,8 @@ import { RotateCcw, Save } from 'lucide-react';
 
 
 interface EnhancedEqualizerProps {
-  audioContext: AudioContext | null;
-  audioElement: HTMLAudioElement | null;
+  audioContext?: AudioContext | null;
+  audioElement?: HTMLAudioElement | null;
 }
 
 const EQ_FREQUENCIES = [60, 170, 350, 1000, 3500, 6000, 12000];
@@ -30,7 +30,10 @@ const EQ_PRESETS = {
   treble: [-3, -2, 1, 3, 5, 8, 9],
 };
 
-export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioContext, audioElement }) => {
+import { useSharedAudioProcessor } from './SharedAudioProcessor';
+
+export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement }) => {
+  const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain } = useSharedAudioProcessor();
   
   const [gains, setGains] = useState<number[]>(Array(7).fill(0));
   const [selectedPreset, setSelectedPreset] = useState<string>('flat');
@@ -44,19 +47,15 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
   const gainNodeRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
-    if (audioContext && audioElement) {
+    if (audioContext && masterGainNode) {
       setupEqualizer();
     }
-  }, [audioContext, audioElement]);
+  }, [audioContext, masterGainNode]);
 
   const setupEqualizer = () => {
-    if (!audioContext || !audioElement) return;
+    if (!audioContext) return;
 
     try {
-      // Create source node if it doesn't exist
-      if (!sourceRef.current) {
-        sourceRef.current = audioContext.createMediaElementSource(audioElement);
-      }
 
       // Create gain node
       gainNodeRef.current = audioContext.createGain();
@@ -78,13 +77,13 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
   };
 
   const connectEqualizer = () => {
-    if (!sourceRef.current || !gainNodeRef.current || filtersRef.current.length === 0 || !audioContext) return;
+    if (!analyserNode || !gainNodeRef.current || filtersRef.current.length === 0 || !audioContext) return;
 
     try {
       // Disconnect filters from previous connections
       filtersRef.current.forEach(filter => {
         try {
-          filter.disconnect();
+          disconnectFromChain(filter);
         } catch (e) {
           // Filter may not be connected
         }
@@ -92,18 +91,15 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
 
       if (isEnabled) {
         // Connect through equalizer chain
-        let currentNode: AudioNode = sourceRef.current;
+        let currentNode: AudioNode = analyserNode;
         
         filtersRef.current.forEach(filter => {
           currentNode.connect(filter);
           currentNode = filter;
         });
         
-        // Connect last filter to destination
-        currentNode.connect(audioContext.destination);
-      } else {
-        // Direct connection when disabled
-        sourceRef.current.connect(audioContext.destination);
+        // Connect through shared audio chain
+        connectToChain(currentNode);
       }
     } catch (error) {
       console.warn('EQ connection failed:', error);

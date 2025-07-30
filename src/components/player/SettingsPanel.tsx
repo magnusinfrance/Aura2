@@ -30,7 +30,7 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({ layout, setLayout,
           <Settings className="h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-64 bg-player-surface border-border">
+      <DropdownMenuContent align="end" className="w-96 bg-player-surface border-border">
         <DropdownMenuLabel>Theme & Layout</DropdownMenuLabel>
         <div className="p-2">
           <div className="mb-3">

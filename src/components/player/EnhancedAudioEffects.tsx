@@ -8,11 +8,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RotateCcw } from 'lucide-react';
 
 interface EnhancedAudioEffectsProps {
-  audioContext: AudioContext | null;
-  audioElement: HTMLAudioElement | null;
+  audioContext?: AudioContext | null;
+  audioElement?: HTMLAudioElement | null;
 }
 
-export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext, audioElement }) => {
+import { useSharedAudioProcessor } from './SharedAudioProcessor';
+
+export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement }) => {
+  const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain } = useSharedAudioProcessor();
   const [reverbEnabled, setReverbEnabled] = useState(false);
   const [reverbAmount, setReverbAmount] = useState([30]);
   const [delayEnabled, setDelayEnabled] = useState(false);
@@ -37,15 +40,10 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   const outputGainRef = useRef<GainNode | null>(null);
 
   useEffect(() => {
-    if (audioContext && audioElement && !sourceRef.current) {
-      try {
-        sourceRef.current = audioContext.createMediaElementSource(audioElement);
-        setupEffects();
-      } catch (error) {
-        console.warn('Enhanced Audio effects setup failed:', error);
-      }
+    if (audioContext && masterGainNode) {
+      setupEffects();
     }
-  }, [audioContext, audioElement]);
+  }, [audioContext, masterGainNode]);
 
   const createReverbImpulse = (duration: number, decay: number) => {
     if (!audioContext) return null;
@@ -66,7 +64,7 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   };
 
   const setupEffects = () => {
-    if (!audioContext || !sourceRef.current) return;
+    if (!audioContext) return;
 
     try {
       // Create reverb
@@ -112,11 +110,10 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
   };
 
   const updateEffectChain = () => {
-    if (!audioContext || !sourceRef.current || !outputGainRef.current) return;
+    if (!audioContext || !masterGainNode || !outputGainRef.current) return;
 
     try {
       // Disconnect all nodes
-      sourceRef.current.disconnect();
       if (reverbNodeRef.current) reverbNodeRef.current.disconnect();
       if (reverbGainRef.current) reverbGainRef.current.disconnect();
       if (delayNodeRef.current) delayNodeRef.current.disconnect();
@@ -126,50 +123,53 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       if (compressorRef.current) compressorRef.current.disconnect();
       outputGainRef.current.disconnect();
 
-      // Create dry path
-      let dryNode: AudioNode = sourceRef.current;
+      // Use shared processor chain
+      let inputNode = analyserNode;
       
       // Create wet paths for effects
       const wetNodes: AudioNode[] = [];
 
-      // Reverb path
-      if (reverbEnabled && reverbNodeRef.current && reverbGainRef.current) {
-        sourceRef.current.connect(reverbNodeRef.current);
-        reverbNodeRef.current.connect(reverbGainRef.current);
-        reverbGainRef.current.gain.value = reverbAmount[0] / 100;
-        wetNodes.push(reverbGainRef.current);
-      }
+      if (inputNode) {
+        // Reverb path
+        if (reverbEnabled && reverbNodeRef.current && reverbGainRef.current) {
+          inputNode.connect(reverbNodeRef.current);
+          reverbNodeRef.current.connect(reverbGainRef.current);
+          reverbGainRef.current.gain.value = reverbAmount[0] / 100;
+          wetNodes.push(reverbGainRef.current);
+        }
 
-      // Delay path
-      if (delayEnabled && delayNodeRef.current && delayGainRef.current && delayFeedbackRef.current) {
-        sourceRef.current.connect(delayNodeRef.current);
-        delayNodeRef.current.connect(delayGainRef.current);
-        delayNodeRef.current.delayTime.value = delayTime[0];
-        delayFeedbackRef.current.gain.value = delayFeedback[0] / 100;
-        delayGainRef.current.gain.value = 0.5;
-        wetNodes.push(delayGainRef.current);
-      }
+        // Delay path
+        if (delayEnabled && delayNodeRef.current && delayGainRef.current && delayFeedbackRef.current) {
+          inputNode.connect(delayNodeRef.current);
+          delayNodeRef.current.connect(delayGainRef.current);
+          delayNodeRef.current.delayTime.value = delayTime[0];
+          delayFeedbackRef.current.gain.value = delayFeedback[0] / 100;
+          delayGainRef.current.gain.value = 0.5;
+          wetNodes.push(delayGainRef.current);
+        }
 
-      // Echo path (separate from delay)
-      if (echoEnabled && echoNodeRef.current && echoGainRef.current && echoFeedbackRef.current) {
-        sourceRef.current.connect(echoNodeRef.current);
-        echoNodeRef.current.connect(echoGainRef.current);
-        echoNodeRef.current.delayTime.value = echoTime[0];
-        echoFeedbackRef.current.gain.value = echoFeedback[0] / 100;
-        echoGainRef.current.gain.value = 0.4;
-        wetNodes.push(echoGainRef.current);
-      }
+        // Echo path (separate from delay)
+        if (echoEnabled && echoNodeRef.current && echoGainRef.current && echoFeedbackRef.current) {
+          inputNode.connect(echoNodeRef.current);
+          echoNodeRef.current.connect(echoGainRef.current);
+          echoNodeRef.current.delayTime.value = echoTime[0];
+          echoFeedbackRef.current.gain.value = echoFeedback[0] / 100;
+          echoGainRef.current.gain.value = 0.4;
+          wetNodes.push(echoGainRef.current);
+        }
 
-      // Connect all paths to output
-      dryNode.connect(outputGainRef.current);
+        // Connect dry path to output
+        inputNode.connect(outputGainRef.current);
+      }
+      
+      // Connect wet paths to output
       wetNodes.forEach(node => node.connect(outputGainRef.current));
 
-      // Apply compression to final output
+      // Connect through shared audio chain
       if (compressionEnabled && compressorRef.current) {
-        outputGainRef.current.connect(compressorRef.current);
-        compressorRef.current.connect(audioContext.destination);
+        connectToChain(outputGainRef.current, compressorRef.current);
       } else {
-        outputGainRef.current.connect(audioContext.destination);
+        connectToChain(outputGainRef.current);
       }
     } catch (error) {
       console.warn('Effect chain update failed:', error);

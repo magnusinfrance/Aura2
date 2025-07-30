@@ -4,7 +4,7 @@ import { TrackList } from './player/TrackList';
 import { NowPlaying } from './player/NowPlaying';
 import { EnhancedVisualizer } from './player/EnhancedVisualizer';
 import { FileManager } from './player/FileManager';
-import { PlaylistManager } from './player/PlaylistManager';
+
 import { RightSidePlaylist } from './player/RightSidePlaylist';
 import { AlbumArt } from './player/AlbumArt';
 import { ThemeSelector } from './player/ThemeSelector';
@@ -14,7 +14,8 @@ import { CompactNowPlaying } from './player/CompactNowPlaying';
 import { SettingsPanel } from './player/SettingsPanel';
 import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
 import { EqualizerPopup } from './player/EqualizerPopup';
-import { AudioProcessorProvider } from './player/AudioProcessor';
+import { SharedAudioProcessorProvider } from './player/SharedAudioProcessor';
+import { QueueManager } from './player/QueueManager';
 import { TrackListMinimal } from './player/TrackListMinimal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -162,6 +163,14 @@ const MusicPlayerContent: React.FC = () => {
   const [activePlaylist, setActivePlaylist] = useState<Playlist | null>(null);
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'album'>('list');
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
+
+  const handleQueueReorder = (reorderedTracks: Track[]) => {
+    setCurrentPlaylistQueue(reorderedTracks);
+  };
+
+  const handleRemoveFromQueue = (track: Track) => {
+    setCurrentPlaylistQueue(prev => prev.filter(t => t.id !== track.id));
+  };
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
   const [trackListView, setTrackListView] = useState<'list' | 'grid' | 'album' | 'minimal'>('list');
 
@@ -286,21 +295,15 @@ const MusicPlayerContent: React.FC = () => {
     const newTracks: Track[] = await Promise.all(files.map(async (file) => {
       const url = URL.createObjectURL(file);
       
-      // Create audio element to get duration
-      const audio = new Audio(url);
-      const duration = await new Promise<number>((resolve) => {
-        audio.addEventListener('loadedmetadata', () => {
-          resolve(audio.duration || 0);
-        });
-        audio.addEventListener('error', () => {
-          resolve(0);
-        });
-      });
+      // Extract full metadata including artist and album
+      const metadata = await extractAudioMetadata(file);
       
       return {
         id: Math.random().toString(36),
-        name: file.name.replace(/\.[^/.]+$/, ""),
-        duration: duration,
+        name: metadata.title || file.name.replace(/\.[^/.]+$/, ""),
+        artist: metadata.artist,
+        album: metadata.album,
+        duration: metadata.duration,
         url,
         file,
       };
@@ -434,19 +437,21 @@ const MusicPlayerContent: React.FC = () => {
               
               <Card className="bg-player-surface border-border h-48">
                 <EnhancedVisualizer 
+                  analyser={analyserRef.current}
                   isPlaying={isPlaying}
                 />
               </Card>
             </div>
             
-            <Card className="bg-player-surface border-border">
-              <TrackList 
-                tracks={tracks}
-                currentTrack={currentTrack}
-                onTrackSelect={playTrack}
-                viewMode="list"
-              />
-            </Card>
+            <QueueManager
+              tracks={currentPlaylistQueue.length > 0 ? currentPlaylistQueue : tracks}
+              currentTrack={currentTrack}
+              isPlaying={isPlaying}
+              onTrackSelect={playTrack}
+              onTrackRemove={handleRemoveFromQueue}
+              onReorder={handleQueueReorder}
+              trackListView={trackListView}
+            />
           </>
         ) : layout === 'focus' ? (
           // Focus Layout - Minimalist design for distraction-free listening
@@ -473,9 +478,10 @@ const MusicPlayerContent: React.FC = () => {
               </Card>
               
               <Card className="bg-player-surface border-border h-32">
-                <EnhancedVisualizer 
-                  isPlaying={isPlaying}
-                />
+              <EnhancedVisualizer 
+                analyser={analyserRef.current}
+                isPlaying={isPlaying}
+              />
               </Card>
             </div>
           </>
@@ -513,9 +519,10 @@ const MusicPlayerContent: React.FC = () => {
               
               <div className="col-span-3">
                 <Card className="bg-player-surface border-border h-full">
-                  <EnhancedVisualizer 
-                    isPlaying={isPlaying}
-                  />
+                   <EnhancedVisualizer 
+                     analyser={analyserRef.current}
+                     isPlaying={isPlaying}
+                   />
                 </Card>
               </div>
             </div>

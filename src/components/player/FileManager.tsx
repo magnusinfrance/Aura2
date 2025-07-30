@@ -203,20 +203,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
         <p>{supportedFormats.join(', ')}</p>
       </div>
 
-      {/* Quick Actions */}
-      <div className="pt-2 border-t border-border">
-        <p className="text-sm font-medium mb-2">Quick Actions</p>
-        <div className="space-y-1">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="w-full justify-start text-xs h-8"
-          >
-            <Plus className="h-3 w-3 mr-2" />
-            Create New Playlist
-          </Button>
-        </div>
-      </div>
     </div>
   );
 };
