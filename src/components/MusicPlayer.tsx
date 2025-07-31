@@ -87,7 +87,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   } = useAudioEffects();
   
   // Get analyser from shared audio processor
-  const { analyserNode, audioContext, masterGainNode } = useSharedAudioProcessor();
+  const { analyserNode, audioContext, masterGainNode, initializeOnUserAction } = useSharedAudioProcessor();
 
   // Initialize audio effects
   useEffect(() => {
@@ -196,6 +196,9 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   }, [outputGain, masterGainNode]);
 
   const playTrack = useCallback(async (track: Track) => {
+    // Initialize audio processor on first user interaction
+    await initializeOnUserAction();
+    
     setCurrentTrack(track);
     setIsPlaying(true);
     
@@ -235,10 +238,13 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
         setIsPlaying(false);
       }
     }
-  }, [playWithFadeIn, audioEffectsConfig.fadeInDuration, prepareGaplessPlayback, currentPlaylistQueue, tracks]);
+  }, [initializeOnUserAction, playWithFadeIn, audioEffectsConfig.fadeInDuration, prepareGaplessPlayback, currentPlaylistQueue, tracks]);
 
   const togglePlayPause = async () => {
     if (!currentTrack) return;
+    
+    // Initialize audio processor on first user interaction
+    await initializeOnUserAction();
     
     // Handle SoundCloud tracks
     if (currentTrack.soundcloud) {

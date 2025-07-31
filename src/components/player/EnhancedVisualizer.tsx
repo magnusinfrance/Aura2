@@ -20,7 +20,13 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
   const [visualizationType, setVisualizationType] = useState<VisualizationType>('bars');
 
   useEffect(() => {
-    if (!analyser || !canvasRef.current) return;
+    console.log('EnhancedVisualizer received analyser:', !!analyser, 'isPlaying:', isPlaying);
+    if (!analyser || !canvasRef.current) {
+      if (!analyser) {
+        console.log('Missing required audio nodes for effects');
+      }
+      return;
+    }
 
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');

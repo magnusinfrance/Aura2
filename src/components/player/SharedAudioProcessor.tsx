@@ -8,6 +8,7 @@ interface SharedAudioProcessorContextType {
   connectToChain: (inputNode: AudioNode, outputNode?: AudioNode) => void;
   disconnectFromChain: (node: AudioNode) => void;
   resetAudioBus: () => void;
+  initializeOnUserAction: () => Promise<void>;
 }
 
 const SharedAudioProcessorContext = createContext<SharedAudioProcessorContextType | null>(null);
@@ -44,17 +45,23 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
 
     // Prevent multiple source nodes from the same audio element
     if (sourceNode && audioContext && audioContext.state !== 'closed') {
+      console.log('Audio processor already initialized, skipping...');
       return;
     }
 
     const initializeAudioProcessor = async () => {
       try {
+        console.log('Initializing audio processor...');
+        
         // Create AudioContext with user interaction
         const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        console.log('AudioContext created, state:', ctx.state);
         
         // Resume context if suspended (required for Safari/iOS)
         if (ctx.state === 'suspended') {
+          console.log('Resuming suspended audio context...');
           await ctx.resume();
+          console.log('Audio context resumed, new state:', ctx.state);
         }
         
         // Check if audio element already has a source node
@@ -63,6 +70,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
           return;
         }
         
+        console.log('Creating audio nodes...');
         const source = ctx.createMediaElementSource(audioElement);
         const analyser = ctx.createAnalyser();
         const masterGain = ctx.createGain();
@@ -75,6 +83,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
         analyser.smoothingTimeConstant = 0.8;
         masterGain.gain.value = 0.3;
 
+        console.log('Connecting audio nodes...');
         // Connect: source -> analyser -> masterGain -> destination
         source.connect(analyser);
         analyser.connect(masterGain);
@@ -85,7 +94,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
         setAnalyserNode(analyser);
         setMasterGainNode(masterGain);
 
-        console.log('Audio processor initialized successfully');
+        console.log('Audio processor initialized successfully with analyser:', !!analyser);
       } catch (error) {
         console.error('Failed to initialize shared audio processor:', error);
         cleanup();
@@ -201,6 +210,63 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     }
   };
 
+  const initializeOnUserAction = async () => {
+    if (!audioElement || (audioContext && audioContext.state !== 'closed')) {
+      console.log('Audio processor already initialized or no audio element');
+      return;
+    }
+
+    try {
+      console.log('Initializing audio processor on user action...');
+      
+      // Create AudioContext with user interaction
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      console.log('AudioContext created, state:', ctx.state);
+      
+      // Resume context if suspended (required for Safari/iOS)
+      if (ctx.state === 'suspended') {
+        console.log('Resuming suspended audio context...');
+        await ctx.resume();
+        console.log('Audio context resumed, new state:', ctx.state);
+      }
+      
+      // Check if audio element already has a source node
+      if ((audioElement as any).__hasSourceNode) {
+        console.warn('Audio element already has a source node, cleaning up first');
+        delete (audioElement as any).__hasSourceNode;
+      }
+      
+      console.log('Creating audio nodes...');
+      const source = ctx.createMediaElementSource(audioElement);
+      const analyser = ctx.createAnalyser();
+      const masterGain = ctx.createGain();
+
+      // Mark audio element to prevent duplicate source nodes
+      (audioElement as any).__hasSourceNode = true;
+
+      // Configure with safer values for production
+      analyser.fftSize = 256;
+      analyser.smoothingTimeConstant = 0.8;
+      masterGain.gain.value = 0.3;
+
+      console.log('Connecting audio nodes...');
+      // Connect: source -> analyser -> masterGain -> destination
+      source.connect(analyser);
+      analyser.connect(masterGain);
+      masterGain.connect(ctx.destination);
+
+      setAudioContext(ctx);
+      setSourceNode(source);
+      setAnalyserNode(analyser);
+      setMasterGainNode(masterGain);
+
+      console.log('Audio processor initialized successfully with analyser:', !!analyser);
+    } catch (error) {
+      console.error('Failed to initialize shared audio processor on user action:', error);
+      cleanup();
+    }
+  };
+
   const value = {
     audioContext,
     sourceNode,
@@ -209,6 +275,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     connectToChain,
     disconnectFromChain,
     resetAudioBus,
+    initializeOnUserAction,
   };
 
   return (
