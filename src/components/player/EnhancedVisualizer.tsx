@@ -197,8 +197,10 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
       const amplitude = dataArray[freq] / 255;
       
       for (let y = 0; y < canvas.height; y++) {
+        // Invert the calculation to render from bottom to top
+        const bottomY = canvas.height - 1 - y;
         const intensity = Math.max(0, amplitude - (y / canvas.height));
-        const pixelIndex = (y * canvas.width + x) * 4;
+        const pixelIndex = (bottomY * canvas.width + x) * 4;
         
         if (intensity > 0) {
           const hue = (freq / dataArray.length) * 360;

@@ -16,25 +16,33 @@ export const CompactNowPlaying: React.FC<CompactNowPlayingProps> = ({
 }) => {
   return (
     <div className="bg-player-surface border border-border rounded-lg overflow-hidden relative h-full flex flex-col">
-      {/* Song Info Bar - Middle */}
-      <div className="relative z-10 flex-1 flex items-center p-3">
+      {/* Background Visualizer - Full Height */}
+      <div className="absolute inset-0">
+        <EnhancedVisualizer 
+          analyser={analyser}
+          isPlaying={isPlaying}
+        />
+      </div>
+      
+      {/* Content Overlay */}
+      <div className="relative z-10 flex-1 flex items-center p-3 bg-gradient-to-b from-black/60 via-black/40 to-transparent">
         <div className="flex items-center space-x-3 w-full">
           <AlbumArt track={track} isPlaying={isPlaying} size="sm" />
           
           <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm truncate drop-shadow-sm text-white">
+            <h3 className="font-semibold text-sm truncate drop-shadow-lg text-white">
               {track?.name || 'No track selected'}
             </h3>
-            <p className="text-xs text-white/80 truncate drop-shadow-sm">
+            <p className="text-xs text-white/90 truncate drop-shadow-lg">
               {track?.artist || 'Select a track to play'}
             </p>
             {track?.album && (
-              <p className="text-xs text-white/60 truncate drop-shadow-sm">
+              <p className="text-xs text-white/75 truncate drop-shadow-lg">
                 {track.album}
               </p>
             )}
             {track?.duration && (
-              <p className="text-xs text-white/50 truncate drop-shadow-sm">
+              <p className="text-xs text-white/60 truncate drop-shadow-lg">
                 {Math.floor(track.duration / 60)}:{Math.floor(track.duration % 60).toString().padStart(2, '0')}
               </p>
             )}
@@ -42,19 +50,9 @@ export const CompactNowPlaying: React.FC<CompactNowPlayingProps> = ({
 
           {/* Status indicator */}
           <div className={`
-            w-2 h-2 rounded-full
+            w-2 h-2 rounded-full shadow-glow
             ${isPlaying ? 'bg-white animate-pulse' : 'bg-white/50'}
           `} />
-        </div>
-      </div>
-      
-      {/* Visualizer Effect - Bottom */}
-      <div className="relative h-16 overflow-hidden">
-        <div className="absolute inset-0">
-          <EnhancedVisualizer 
-            analyser={analyser}
-            isPlaying={isPlaying}
-          />
         </div>
       </div>
     </div>

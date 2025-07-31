@@ -37,6 +37,13 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({
     }
   }, [track]);
 
+  // Also try to extract album art when playing starts
+  useEffect(() => {
+    if (track?.file && isPlaying && !albumArt) {
+      extractAlbumArt(track.file);
+    }
+  }, [track, isPlaying, albumArt]);
+
   const extractAlbumArt = async (file: File) => {
     try {
       // Try to extract embedded album art
