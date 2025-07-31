@@ -11,11 +11,31 @@ interface EnhancedAudioEffectsProps {
   audioContext?: AudioContext | null;
   audioElement?: HTMLAudioElement | null;
   outputGain?: number;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+  crossfadeDuration?: number;
+  gaplessPlayback?: boolean;
+  onFadeInChange?: (value: number) => void;
+  onFadeOutChange?: (value: number) => void;
+  onCrossfadeChange?: (value: number) => void;
+  onGaplessToggle?: (value: boolean) => void;
 }
 
 import { useSharedAudioProcessor } from './SharedAudioProcessor';
 
-export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audioContext: externalAudioContext, audioElement: externalAudioElement, outputGain = 0.6 }) => {
+export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ 
+  audioContext: externalAudioContext, 
+  audioElement: externalAudioElement, 
+  outputGain = 0.6,
+  fadeInDuration = 1000,
+  fadeOutDuration = 1000,
+  crossfadeDuration = 3000,
+  gaplessPlayback = false,
+  onFadeInChange,
+  onFadeOutChange,
+  onCrossfadeChange,
+  onGaplessToggle
+}) => {
   const { audioContext, sourceNode, analyserNode, masterGainNode, connectToChain, disconnectFromChain, resetAudioBus } = useSharedAudioProcessor();
   const [reverbEnabled, setReverbEnabled] = useState(false);
   const [reverbAmount, setReverbAmount] = useState([30]);
@@ -279,11 +299,12 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
       </div>
 
       <Tabs defaultValue="reverb" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="reverb" className="text-xs">Reverb</TabsTrigger>
           <TabsTrigger value="delay" className="text-xs">Delay</TabsTrigger>
           <TabsTrigger value="echo" className="text-xs">Echo</TabsTrigger>
           <TabsTrigger value="comp" className="text-xs">Comp</TabsTrigger>
+          <TabsTrigger value="playback" className="text-xs">Playback</TabsTrigger>
         </TabsList>
 
         <TabsContent value="reverb" className="space-y-3 mt-3">
@@ -403,6 +424,82 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({ audi
               />
             </div>
           )}
+        </TabsContent>
+
+        <TabsContent value="playback" className="space-y-3 mt-3">
+          <div className="space-y-4">
+            {/* Gapless Playback */}
+            <div className="flex items-center justify-between">
+              <Label htmlFor="gapless" className="text-xs">
+                Gapless Playback
+              </Label>
+              <Switch
+                id="gapless"
+                checked={gaplessPlayback}
+                onCheckedChange={onGaplessToggle}
+              />
+            </div>
+
+            {/* Fade In Duration */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Fade In</Label>
+                <span className="text-xs text-muted-foreground">
+                  {(fadeInDuration / 1000).toFixed(1)}s
+                </span>
+              </div>
+              <Slider
+                value={[fadeInDuration]}
+                onValueChange={([value]) => onFadeInChange?.(value)}
+                max={5000}
+                min={0}
+                step={100}
+                className="w-full"
+              />
+            </div>
+
+            {/* Fade Out Duration */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Fade Out</Label>
+                <span className="text-xs text-muted-foreground">
+                  {(fadeOutDuration / 1000).toFixed(1)}s
+                </span>
+              </div>
+              <Slider
+                value={[fadeOutDuration]}
+                onValueChange={([value]) => onFadeOutChange?.(value)}
+                max={5000}
+                min={0}
+                step={100}
+                className="w-full"
+              />
+            </div>
+
+            {/* Crossfade Duration */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Crossfade</Label>
+                <span className="text-xs text-muted-foreground">
+                  {(crossfadeDuration / 1000).toFixed(1)}s
+                </span>
+              </div>
+              <Slider
+                value={[crossfadeDuration]}
+                onValueChange={([value]) => onCrossfadeChange?.(value)}
+                max={10000}
+                min={0}
+                step={500}
+                className="w-full"
+              />
+            </div>
+            
+            <div className="text-xs text-muted-foreground pt-2 border-t">
+              <p>• Gapless: Seamless track transitions</p>
+              <p>• Fade In/Out: Smooth start/end</p>
+              <p>• Crossfade: Blend between tracks</p>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

@@ -18,6 +18,14 @@ interface AudioSettingsProps {
   analyser?: AnalyserNode | null;
   outputGain?: number;
   onOutputGainChange?: (gain: number) => void;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+  crossfadeDuration?: number;
+  gaplessPlayback?: boolean;
+  onFadeInChange?: (value: number) => void;
+  onFadeOutChange?: (value: number) => void;
+  onCrossfadeChange?: (value: number) => void;
+  onGaplessToggle?: (value: boolean) => void;
 }
 
 export const AudioSettings: React.FC<AudioSettingsProps> = ({ 
@@ -25,7 +33,15 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
   audioContext, 
   analyser,
   outputGain = 0.6, 
-  onOutputGainChange
+  onOutputGainChange,
+  fadeInDuration,
+  fadeOutDuration,
+  crossfadeDuration,
+  gaplessPlayback,
+  onFadeInChange,
+  onFadeOutChange,
+  onCrossfadeChange,
+  onGaplessToggle
 }) => {
   return (
     <Popover>
@@ -48,6 +64,14 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
               audioContext={audioContext}
               audioElement={audioElement}
               outputGain={outputGain}
+              fadeInDuration={fadeInDuration}
+              fadeOutDuration={fadeOutDuration}
+              crossfadeDuration={crossfadeDuration}
+              gaplessPlayback={gaplessPlayback}
+              onFadeInChange={onFadeInChange}
+              onFadeOutChange={onFadeOutChange}
+              onCrossfadeChange={onCrossfadeChange}
+              onGaplessToggle={onGaplessToggle}
             />
           </TabsContent>
           

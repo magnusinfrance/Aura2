@@ -3,7 +3,7 @@ import { ThemeLayoutSettings } from './settings/ThemeLayoutSettings';
 import { AudioSettings } from './settings/AudioSettings';
 import { LibrarySettings } from './settings/LibrarySettings';
 import { InfoSettings } from './settings/InfoSettings';
-import { AudioEffectsSettings } from './settings/AudioEffectsSettings';
+
 import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 
 
@@ -58,20 +58,18 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         analyser={analyser}
         outputGain={outputGain}
         onOutputGainChange={onOutputGainChange}
-      />
-      <LibrarySettings
-        onFilesAdd={onFilesAdd}
-        onClearLibrary={onClearLibrary}
-      />
-      <AudioEffectsSettings
         fadeInDuration={fadeInDuration}
         fadeOutDuration={fadeOutDuration}
         crossfadeDuration={crossfadeDuration}
         gaplessPlayback={gaplessPlayback}
-        onFadeInChange={onFadeInChange || (() => {})}
-        onFadeOutChange={onFadeOutChange || (() => {})}
-        onCrossfadeChange={onCrossfadeChange || (() => {})}
-        onGaplessToggle={onGaplessToggle || (() => {})}
+        onFadeInChange={onFadeInChange}
+        onFadeOutChange={onFadeOutChange}
+        onCrossfadeChange={onCrossfadeChange}
+        onGaplessToggle={onGaplessToggle}
+      />
+      <LibrarySettings
+        onFilesAdd={onFilesAdd}
+        onClearLibrary={onClearLibrary}
       />
       <KeyboardShortcutsHelp />
       <InfoSettings />
