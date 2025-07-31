@@ -36,7 +36,7 @@ export const TrackListMinimal: React.FC<TrackListMinimalProps> = ({
             className={`
               flex items-center space-x-2 px-2 py-1.5 rounded cursor-pointer transition-all duration-200
               hover:bg-player-elevated group text-xs
-              ${isCurrentTrack ? 'bg-player-elevated border-l-2 border-primary' : ''}
+              ${isCurrentTrack ? 'bg-primary/10 border-l-2 border-primary ring-1 ring-primary/20' : ''}
             `}
             onClick={() => onTrackSelect(track)}
           >

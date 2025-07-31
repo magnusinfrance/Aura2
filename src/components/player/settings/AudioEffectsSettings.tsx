@@ -38,7 +38,7 @@ export const AudioEffectsSettings: React.FC<AudioEffectsSettingsProps> = ({
           <Waves className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-80 p-4" align="center">
+      <PopoverContent className="w-80 p-4 bg-popover border-border" align="center">
         <div className="space-y-4">
           <div className="flex items-center space-x-2">
             <Waves className="h-4 w-4 text-primary" />

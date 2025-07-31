@@ -52,7 +52,7 @@ export const DraggableTrackItem: React.FC<DraggableTrackItemProps> = ({
       className={`
         flex items-center space-x-3 p-3 rounded-lg cursor-pointer transition-all duration-200 group
         hover:bg-player-elevated
-        ${isCurrentTrack ? 'bg-player-elevated border-l-4 border-primary' : ''}
+        ${isCurrentTrack ? 'bg-primary/10 border-l-4 border-primary ring-1 ring-primary/20' : ''}
         ${isDragging ? 'opacity-50 scale-105 shadow-lg z-50' : ''}
       `}
       onDoubleClick={onDoubleClick}

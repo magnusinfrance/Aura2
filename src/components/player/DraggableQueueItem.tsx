@@ -54,7 +54,7 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
       className={`
         group flex items-center ${compact ? 'space-x-1 py-0.5 px-1' : 'space-x-2 py-0.5 px-2'} rounded-md transition-all duration-200
         ${isDragging ? 'opacity-50 bg-player-elevated scale-105 shadow-lg' : ''}
-        ${isCurrentTrack ? 'bg-primary/10 border border-primary/30' : 'hover:bg-player-elevated'}
+        ${isCurrentTrack ? 'bg-primary/10 border border-primary/30 ring-1 ring-primary/20' : 'hover:bg-player-elevated'}
         cursor-pointer
       `}
       onDoubleClick={onDoubleClick || (() => onPlay())}

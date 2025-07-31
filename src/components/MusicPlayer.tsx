@@ -256,12 +256,8 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     if (audioRef.current) {
       try {
         if (isPlaying) {
-          // Use fade out effect if enabled
-          if (audioEffectsConfig.fadeOutDuration > 0) {
-            await stopWithFadeOut(audioRef.current);
-          } else {
-            audioRef.current.pause();
-          }
+          // Always pause immediately on manual stop/pause for responsiveness
+          audioRef.current.pause();
           setIsPlaying(false);
         } else {
           // Use fade in effect if enabled
