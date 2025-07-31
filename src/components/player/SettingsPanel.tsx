@@ -1,19 +1,8 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Slider } from '@/components/ui/slider';
-import { ThemeSelector } from './ThemeSelector';
-import { LayoutSelector } from './LayoutSelector';
-import { EnhancedAudioEffects } from './EnhancedAudioEffects';
-import { EqualizerPopup } from './EqualizerPopup';
-import { GainMeter } from './GainMeter';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from '@/components/ui/dropdown-menu';
-import { Settings, Info, FileType, Sliders, Volume2, Trash2 } from 'lucide-react';
+import React from 'react';
+import { ThemeLayoutSettings } from './settings/ThemeLayoutSettings';
+import { AudioSettings } from './settings/AudioSettings';
+import { LibrarySettings } from './settings/LibrarySettings';
+import { InfoSettings } from './settings/InfoSettings';
 
 interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
@@ -39,119 +28,23 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onClearLibrary
 }) => {
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="hover:bg-player-elevated">
-          <Settings className="h-4 w-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-96 bg-player-surface border-border">
-        <DropdownMenuLabel>Theme & Layout</DropdownMenuLabel>
-        <div className="p-2">
-          <div className="mb-3">
-            <label className="text-xs text-muted-foreground mb-1 block">Theme</label>
-            <ThemeSelector />
-          </div>
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Layout</label>
-            <LayoutSelector layout={layout} setLayout={setLayout} />
-          </div>
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4" />
-          Audio Effects
-        </DropdownMenuLabel>
-        <div className="p-2">
-          <EnhancedAudioEffects 
-            audioContext={audioContext}
-            audioElement={audioElement}
-            outputGain={outputGain}
-          />
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Sliders className="h-4 w-4" />
-          Equalizer
-        </DropdownMenuLabel>
-        <div className="p-2">
-          <EqualizerPopup 
-            audioContext={audioContext}
-            audioElement={audioElement}
-          />
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <FileType className="h-4 w-4" />
-          Supported Formats
-        </DropdownMenuLabel>
-        <div className="p-2 text-xs text-muted-foreground space-y-1">
-          <div>• MP3, FLAC, WAV, OGG</div>
-          <div>• M4A, AAC, WMA</div>
-          <div>• 16-bit & 24-bit support</div>
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Trash2 className="h-4 w-4" />
-          Music Library
-        </DropdownMenuLabel>
-        <div className="p-2">
-          {onClearLibrary && (
-            <Button
-              onClick={onClearLibrary}
-              variant="destructive"
-              size="sm"
-              className="w-full"
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Clear Library
-            </Button>
-          )}
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Volume2 className="h-4 w-4" />
-          Output Gain
-        </DropdownMenuLabel>
-        <div className="p-2">
-          <div className="flex items-center space-x-2 mb-3">
-            <Slider
-              value={[outputGain]}
-              onValueChange={(value) => onOutputGainChange?.(value[0])}
-              min={0.1}
-              max={1.0}
-              step={0.05}
-              className="flex-1"
-            />
-            <span className="text-xs text-muted-foreground min-w-[3ch]">
-              {Math.round(outputGain * 100)}%
-            </span>
-          </div>
-          <GainMeter analyser={analyser} />
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Info className="h-4 w-4" />
-          Information
-        </DropdownMenuLabel>
-        <div className="p-2 text-xs text-muted-foreground space-y-1">
-          <div>Version: 2.0.0</div>
-          <div>Built with React & Web Audio API</div>
-          <div>High-quality audio visualization</div>
-        </div>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <div className="flex items-center gap-1">
+      <ThemeLayoutSettings 
+        layout={layout} 
+        setLayout={setLayout} 
+      />
+      <AudioSettings
+        audioElement={audioElement}
+        audioContext={audioContext}
+        analyser={analyser}
+        outputGain={outputGain}
+        onOutputGainChange={onOutputGainChange}
+      />
+      <LibrarySettings
+        onFilesAdd={onFilesAdd}
+        onClearLibrary={onClearLibrary}
+      />
+      <InfoSettings />
+    </div>
   );
 };
