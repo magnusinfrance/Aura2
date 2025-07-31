@@ -270,10 +270,11 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     ctx.shadowBlur = 15;
     
     ctx.beginPath();
+    const step = canvas.width / (dataArray.length - 1);
     for (let i = 0; i < dataArray.length; i++) {
-      const x = (i / dataArray.length) * canvas.width;
-      const amplitude = (dataArray[i] / 255) * (canvas.height / 3);
-      const y = centerY + Math.sin(i * 0.1) * amplitude;
+      const x = i * step;
+      const amplitude = (dataArray[i] / 255) * (canvas.height * 0.3);
+      const y = centerY + Math.sin(i * 0.05) * amplitude;
       
       if (i === 0) ctx.moveTo(x, y);
       else ctx.lineTo(x, y);
@@ -286,18 +287,18 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
   const drawGalaxy = (ctx: CanvasRenderingContext2D, dataArray: Uint8Array, canvas: HTMLCanvasElement) => {
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
-    const maxRadius = Math.min(centerX, centerY) - 20;
+    const maxRadius = Math.min(centerX, centerY) * 0.8; // Scale down to fit better
     
-    for (let i = 0; i < dataArray.length; i += 2) {
+    for (let i = 0; i < dataArray.length; i += 3) {
       const amplitude = dataArray[i] / 255;
       if (amplitude > 0.1) {
-        const angle = (i / dataArray.length) * Math.PI * 6; // Multiple spirals
-        const radius = (amplitude * maxRadius) + (i / dataArray.length) * maxRadius * 0.5;
+        const angle = (i / dataArray.length) * Math.PI * 4; // Reduced spiral density
+        const radius = (amplitude * maxRadius * 0.5) + (i / dataArray.length) * maxRadius * 0.7;
         
         const x = centerX + Math.cos(angle) * radius;
         const y = centerY + Math.sin(angle) * radius;
         
-        const size = amplitude * 5;
+        const size = amplitude * 3 + 1; // Smaller particles
         const hue = (i / dataArray.length) * 360;
         
         const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
@@ -314,25 +315,28 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
 
   // Matrix rain effect
   const drawMatrix = (ctx: CanvasRenderingContext2D, dataArray: Uint8Array, canvas: HTMLCanvasElement) => {
-    const columns = Math.floor(canvas.width / 20);
-    const fontSize = 16;
+    const columns = Math.floor(canvas.width / 15); // More columns for better coverage
+    const fontSize = 12;
     ctx.font = `${fontSize}px monospace`;
     
     for (let i = 0; i < columns; i++) {
       const amplitude = dataArray[i % dataArray.length] / 255;
-      if (amplitude > 0.2) {
-        const x = i * 20;
-        const numChars = Math.floor(amplitude * 20);
+      if (amplitude > 0.15) {
+        const x = i * 15;
+        const numChars = Math.floor(amplitude * (canvas.height / fontSize));
         
         for (let j = 0; j < numChars; j++) {
-          const y = (j * fontSize) % canvas.height;
-          const alpha = amplitude * (1 - j / numChars);
+          const y = (j * fontSize) + fontSize;
+          const alpha = amplitude * (1 - j / numChars) * 0.8;
           const char = String.fromCharCode(0x30A0 + Math.random() * 96);
           
-          ctx.fillStyle = `hsla(120, 100%, 50%, ${alpha})`;
-          ctx.shadowColor = 'hsl(120, 100%, 50%)';
-          ctx.shadowBlur = 10;
-          ctx.fillText(char, x, y);
+          // Ensure the text stays within canvas bounds
+          if (y < canvas.height) {
+            ctx.fillStyle = `hsla(120, 100%, 50%, ${alpha})`;
+            ctx.shadowColor = 'hsl(120, 100%, 50%)';
+            ctx.shadowBlur = 8;
+            ctx.fillText(char, x, y);
+          }
         }
       }
     }
@@ -381,8 +385,8 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
         {analyser ? (
           <canvas
             ref={canvasRef}
-            width={300}
-            height={200}
+            width={600}
+            height={300}
             className="w-full h-full rounded-lg bg-player-bg"
           />
         ) : (
