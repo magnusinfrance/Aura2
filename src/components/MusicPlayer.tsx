@@ -127,13 +127,19 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     setCurrentTrack(track);
     setIsPlaying(true);
     
-    // Handle SoundCloud tracks differently
+    // Handle SoundCloud tracks
     if (track.soundcloud) {
+      // Pause any regular audio that might be playing
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
       // SoundCloud tracks will be handled by the SoundCloudPlayer component
       return;
     }
     
-    // Handle regular audio files
+    // Handle regular audio files - pause any SoundCloud that might be playing
+    // (SoundCloud will be paused via the component's useEffect when isPlaying changes)
     if (audioRef.current) {
       audioRef.current.src = track.url;
       
@@ -149,8 +155,13 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const togglePlayPause = async () => {
     if (!currentTrack) return;
     
-    // Handle SoundCloud tracks differently
+    // Handle SoundCloud tracks
     if (currentTrack.soundcloud) {
+      // Ensure regular audio is paused
+      if (audioRef.current && !audioRef.current.paused) {
+        audioRef.current.pause();
+        audioRef.current.src = '';
+      }
       // SoundCloud playback will be handled by the SoundCloudPlayer component
       setIsPlaying(!isPlaying);
       return;
@@ -263,6 +274,11 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   }, []);
 
   const handleSoundCloudPlay = useCallback(() => {
+    // Ensure regular audio is paused when SoundCloud starts
+    if (audioRef.current && !audioRef.current.paused) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
     setIsPlaying(true);
   }, []);
 

@@ -77,6 +77,13 @@ export const SoundCloudPlayer: React.FC<SoundCloudPlayerProps> = ({
     }
   }, [isPlaying, isLoaded]);
 
+  // Pause SoundCloud when isPlaying becomes false (regular audio started)
+  useEffect(() => {
+    if (widgetRef.current && isLoaded && !isPlaying) {
+      widgetRef.current.pause();
+    }
+  }, [isPlaying, isLoaded]);
+
   useEffect(() => {
     if (widgetRef.current && isLoaded) {
       widgetRef.current.setVolume(volume * 100);
