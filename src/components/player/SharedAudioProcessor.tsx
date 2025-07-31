@@ -42,21 +42,35 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
       return;
     }
 
-    // Only initialize if we don't already have nodes for this audio element
-    if (sourceNode && audioContext) {
+    // Prevent multiple source nodes from the same audio element
+    if (sourceNode && audioContext && audioContext.state !== 'closed') {
       return;
     }
 
-    try {
-      // Create or reuse AudioContext
-      const ctx = audioContext || new AudioContext();
-      
-      // Only create source if we don't have one or if the context is new
-      if (!sourceNode || !audioContext) {
+    const initializeAudioProcessor = async () => {
+      try {
+        // Create AudioContext with user interaction
+        const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+        
+        // Resume context if suspended (required for Safari/iOS)
+        if (ctx.state === 'suspended') {
+          await ctx.resume();
+        }
+        
+        // Check if audio element already has a source node
+        if ((audioElement as any).__hasSourceNode) {
+          console.warn('Audio element already has a source node, skipping initialization');
+          return;
+        }
+        
         const source = ctx.createMediaElementSource(audioElement);
         const analyser = ctx.createAnalyser();
         const masterGain = ctx.createGain();
 
+        // Mark audio element to prevent duplicate source nodes
+        (audioElement as any).__hasSourceNode = true;
+
+        // Configure with safer values for production
         analyser.fftSize = 256;
         analyser.smoothingTimeConstant = 0.8;
         masterGain.gain.value = 1.0;
@@ -70,17 +84,20 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
         setSourceNode(source);
         setAnalyserNode(analyser);
         setMasterGainNode(masterGain);
+
+        console.log('Audio processor initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize shared audio processor:', error);
+        cleanup();
       }
-    } catch (error) {
-      console.warn('Failed to initialize shared audio processor:', error);
-      // If this fails, clean up and try again
-      cleanup();
-    }
+    };
+
+    initializeAudioProcessor();
 
     return () => {
       // Don't cleanup on unmount, only when audioElement changes
     };
-  }, [audioElement, sourceNode, audioContext]);
+  }, [audioElement]);
 
   const cleanup = () => {
     connectedNodes.current.forEach(node => {
@@ -91,6 +108,11 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
       }
     });
     connectedNodes.current.clear();
+    
+    // Clear the audio element marker
+    if (audioElement) {
+      delete (audioElement as any).__hasSourceNode;
+    }
     
     setSourceNode(null);
     setAnalyserNode(null);
