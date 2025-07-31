@@ -13,8 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { Settings, Info, FileType, Sliders, Volume2, Cloud } from 'lucide-react';
-import { SoundCloudIntegration } from './SoundCloudIntegration';
+import { Settings, Info, FileType, Sliders, Volume2 } from 'lucide-react';
 
 interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
@@ -99,16 +98,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
             audioContext={audioContext}
             audioElement={audioElement}
           />
-        </div>
-        
-        <DropdownMenuSeparator />
-        
-        <DropdownMenuLabel className="flex items-center gap-2">
-          <Cloud className="h-4 w-4" />
-          Connect with SoundCloud
-        </DropdownMenuLabel>
-        <div className="p-2">
-          {onFilesAdd && <SoundCloudIntegration onTracksAdd={onFilesAdd} />}
         </div>
         
         <DropdownMenuSeparator />
