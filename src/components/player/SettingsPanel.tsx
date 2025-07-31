@@ -3,6 +3,8 @@ import { ThemeLayoutSettings } from './settings/ThemeLayoutSettings';
 import { AudioSettings } from './settings/AudioSettings';
 import { LibrarySettings } from './settings/LibrarySettings';
 import { InfoSettings } from './settings/InfoSettings';
+import { AudioEffectsSettings } from './settings/AudioEffectsSettings';
+import { KeyboardShortcutsHelp } from './KeyboardShortcutsHelp';
 
 
 interface SettingsPanelProps {
@@ -15,7 +17,14 @@ interface SettingsPanelProps {
   onOutputGainChange?: (gain: number) => void;
   onFilesAdd?: (files: any[]) => void;
   onClearLibrary?: () => void;
-  
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+  crossfadeDuration?: number;
+  gaplessPlayback?: boolean;
+  onFadeInChange?: (value: number) => void;
+  onFadeOutChange?: (value: number) => void;
+  onCrossfadeChange?: (value: number) => void;
+  onGaplessToggle?: (value: boolean) => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
@@ -28,6 +37,14 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   onOutputGainChange,
   onFilesAdd,
   onClearLibrary,
+  fadeInDuration = 2000,
+  fadeOutDuration = 2000,
+  crossfadeDuration = 3000,
+  gaplessPlayback = true,
+  onFadeInChange,
+  onFadeOutChange,
+  onCrossfadeChange,
+  onGaplessToggle,
 }) => {
   return (
     <div className="flex items-center gap-1">
@@ -46,6 +63,17 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         onFilesAdd={onFilesAdd}
         onClearLibrary={onClearLibrary}
       />
+      <AudioEffectsSettings
+        fadeInDuration={fadeInDuration}
+        fadeOutDuration={fadeOutDuration}
+        crossfadeDuration={crossfadeDuration}
+        gaplessPlayback={gaplessPlayback}
+        onFadeInChange={onFadeInChange || (() => {})}
+        onFadeOutChange={onFadeOutChange || (() => {})}
+        onCrossfadeChange={onCrossfadeChange || (() => {})}
+        onGaplessToggle={onGaplessToggle || (() => {})}
+      />
+      <KeyboardShortcutsHelp />
       <InfoSettings />
     </div>
   );

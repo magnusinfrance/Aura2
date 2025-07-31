@@ -22,6 +22,9 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { useAudioMetadata } from '@/hooks/useAudioMetadata';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useDynamicTheme } from '@/hooks/useDynamicTheme';
+import { useAudioEffects } from '@/hooks/useAudioEffects';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import auraLogo from '@/assets/aura-logo-transparent.png';
@@ -65,13 +68,80 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
   const [outputGain, setOutputGain] = useState(0.6);
-  
+  const [isMuted, setIsMuted] = useState(false);
+  const [previousVolume, setPreviousVolume] = useState(0.7);
 
   const { extractMetadata } = useAudioMetadata();
   const { toast } = useToast();
+  const { updateThemeFromAlbumArt, resetTheme } = useDynamicTheme();
+  const {
+    fadeIn,
+    fadeOut,
+    playWithFadeIn,
+    stopWithFadeOut,
+    updateConfig,
+    setAudioRef,
+    prepareGaplessPlayback,
+    switchToNextTrack,
+    config: audioEffectsConfig
+  } = useAudioEffects();
   
   // Get analyser from shared audio processor
   const { analyserNode, audioContext, masterGainNode } = useSharedAudioProcessor();
+
+  // Initialize audio effects
+  useEffect(() => {
+    if (audioRef.current) {
+      setAudioRef(audioRef.current);
+    }
+  }, [setAudioRef]);
+
+  // Update theme when track changes
+  useEffect(() => {
+    if (currentTrack?.artwork) {
+      updateThemeFromAlbumArt(currentTrack.artwork);
+    } else {
+      resetTheme();
+    }
+  }, [currentTrack?.artwork, updateThemeFromAlbumArt, resetTheme]);
+
+  const handleVolumeUp = useCallback(() => {
+    setVolume(prev => Math.min(1, prev + 0.1));
+  }, []);
+
+  const handleVolumeDown = useCallback(() => {
+    setVolume(prev => Math.max(0, prev - 0.1));
+  }, []);
+
+  const handleMute = useCallback(() => {
+    if (isMuted) {
+      setVolume(previousVolume);
+      setIsMuted(false);
+    } else {
+      setPreviousVolume(volume);
+      setVolume(0);
+      setIsMuted(true);
+    }
+  }, [isMuted, volume, previousVolume]);
+
+  const handleSeekForward = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.min(
+        duration,
+        audioRef.current.currentTime + 10
+      );
+    }
+  }, [duration]);
+
+  const handleSeekBackward = useCallback(() => {
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.max(
+        0,
+        audioRef.current.currentTime - 10
+      );
+    }
+  }, []);
+
 
   const handleQueueReorder = useCallback((reorderedTracks: Track[]) => {
     setCurrentPlaylistQueue(reorderedTracks);
@@ -146,13 +216,26 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
       audioRef.current.src = track.url;
       
       try {
-        await audioRef.current.play();
+        // Use fade in effect if enabled
+        if (audioEffectsConfig.fadeInDuration > 0) {
+          await playWithFadeIn(audioRef.current);
+        } else {
+          await audioRef.current.play();
+        }
+        
+        // Prepare next track for gapless playback
+        const sourceList = currentPlaylistQueue.length > 0 ? currentPlaylistQueue : tracks;
+        const currentIndex = sourceList.findIndex(t => t.id === track.id);
+        const nextTrack = sourceList[currentIndex + 1];
+        if (nextTrack && !nextTrack.soundcloud) {
+          prepareGaplessPlayback(nextTrack.url);
+        }
       } catch (error) {
         console.warn('Play failed:', error);
         setIsPlaying(false);
       }
     }
-  }, []);
+  }, [playWithFadeIn, audioEffectsConfig.fadeInDuration, prepareGaplessPlayback, currentPlaylistQueue, tracks]);
 
   const togglePlayPause = async () => {
     if (!currentTrack) return;
@@ -173,10 +256,20 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     if (audioRef.current) {
       try {
         if (isPlaying) {
-          audioRef.current.pause();
+          // Use fade out effect if enabled
+          if (audioEffectsConfig.fadeOutDuration > 0) {
+            await stopWithFadeOut(audioRef.current);
+          } else {
+            audioRef.current.pause();
+          }
           setIsPlaying(false);
         } else {
-          await audioRef.current.play();
+          // Use fade in effect if enabled
+          if (audioEffectsConfig.fadeInDuration > 0) {
+            await playWithFadeIn(audioRef.current);
+          } else {
+            await audioRef.current.play();
+          }
           setIsPlaying(true);
         }
       } catch (error) {
@@ -308,6 +401,24 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     setPlaylists(prev => [...prev, newPlaylist]);
   };
 
+  // Setup keyboard shortcuts after all handlers are defined
+  useKeyboardShortcuts({
+    onPlayPause: togglePlayPause,
+    onNext: handleNext,
+    onPrevious: handlePrevious,
+    onVolumeUp: handleVolumeUp,
+    onVolumeDown: handleVolumeDown,
+    onMute: handleMute,
+    onShuffle: () => setIsShuffled(!isShuffled),
+    onRepeat: () => {
+      const modes: Array<'none' | 'one' | 'all'> = ['none', 'one', 'all'];
+      const currentIndex = modes.indexOf(repeatMode);
+      setRepeatMode(modes[(currentIndex + 1) % modes.length]);
+    },
+    onSeekForward: handleSeekForward,
+    onSeekBackward: handleSeekBackward,
+  });
+
   if (layout === 'mini') {
     return (
       <div className="fixed bottom-4 right-4 w-80 bg-player-surface/95 backdrop-blur-lg border border-border rounded-lg shadow-2xl">
@@ -387,7 +498,14 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               onOutputGainChange={setOutputGain}
               onFilesAdd={addFiles}
               onClearLibrary={clearMusicLibrary}
-              
+              fadeInDuration={audioEffectsConfig.fadeInDuration}
+              fadeOutDuration={audioEffectsConfig.fadeOutDuration}
+              crossfadeDuration={audioEffectsConfig.crossfadeDuration}
+              gaplessPlayback={audioEffectsConfig.gaplessPlayback}
+              onFadeInChange={(value) => updateConfig({ fadeInDuration: value })}
+              onFadeOutChange={(value) => updateConfig({ fadeOutDuration: value })}
+              onCrossfadeChange={(value) => updateConfig({ crossfadeDuration: value })}
+              onGaplessToggle={(value) => updateConfig({ gaplessPlayback: value })}
             />
             <Button
               variant="ghost"
