@@ -77,29 +77,39 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
   };
 
   const connectEqualizer = () => {
-    if (!analyserNode || !gainNodeRef.current || filtersRef.current.length === 0 || !audioContext) return;
+    if (!audioContext || !gainNodeRef.current || filtersRef.current.length === 0) return;
 
     try {
-      // Disconnect filters from previous connections
+      // Always disconnect all filters first
       filtersRef.current.forEach(filter => {
         try {
-          disconnectFromChain(filter);
+          filter.disconnect();
         } catch (e) {
           // Filter may not be connected
         }
       });
+      
+      // Also disconnect the gain node
+      try {
+        gainNodeRef.current.disconnect();
+      } catch (e) {
+        // May not be connected
+      }
 
       if (isEnabled) {
-        // Connect through equalizer chain
-        let currentNode: AudioNode = analyserNode;
+        // Create the EQ chain: first filter -> ... -> last filter -> gain node
+        let currentNode: AudioNode = filtersRef.current[0];
         
-        filtersRef.current.forEach(filter => {
-          currentNode.connect(filter);
-          currentNode = filter;
-        });
+        // Connect filters in series
+        for (let i = 1; i < filtersRef.current.length; i++) {
+          filtersRef.current[i - 1].connect(filtersRef.current[i]);
+        }
         
-        // Connect through shared audio chain
-        connectToChain(currentNode);
+        // Connect last filter to our gain node
+        filtersRef.current[filtersRef.current.length - 1].connect(gainNodeRef.current);
+        
+        // Use the shared audio processor to insert our EQ chain
+        connectToChain(filtersRef.current[0], gainNodeRef.current);
       }
     } catch (error) {
       console.warn('EQ connection failed:', error);
