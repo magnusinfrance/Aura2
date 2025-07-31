@@ -31,7 +31,10 @@ export interface Track {
   album?: string;
   duration?: number;
   url: string;
-  file: File;
+  file?: File | null;
+  artwork?: string;
+  genre?: string;
+  soundcloud?: boolean;
 }
 
 export interface Playlist {
@@ -190,8 +193,16 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     }
   };
 
-  const addFiles = useCallback(async (files: File[]) => {
-    const newTracks: Track[] = await Promise.all(files.map(async (file) => {
+  const addFiles = useCallback(async (files: any[]) => {
+    // Handle both File objects and SoundCloud tracks
+    const newTracks: Track[] = await Promise.all(files.map(async (fileOrTrack) => {
+      // If it's already a track object (from SoundCloud), use it directly
+      if (typeof fileOrTrack === 'object' && fileOrTrack.id && fileOrTrack.url && !fileOrTrack.type) {
+        return fileOrTrack;
+      }
+      
+      // If it's a File object, process normally
+      const file = fileOrTrack as File;
       const url = URL.createObjectURL(file);
       
       // Extract full metadata including artist, album, and album art
@@ -302,6 +313,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               analyser={analyserNode}
               outputGain={outputGain}
               onOutputGainChange={setOutputGain}
+              onFilesAdd={addFiles}
             />
             <Button
               variant="ghost"

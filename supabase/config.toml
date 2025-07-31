@@ -1,1 +1,4 @@
 project_id = "ghmrxgknancxndaxkili"
+
+[functions.soundcloud-auth]
+verify_jwt = true
