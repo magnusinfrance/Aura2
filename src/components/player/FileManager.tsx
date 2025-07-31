@@ -8,12 +8,14 @@ import {
   HardDrive
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { SoundCloudWidget } from './SoundCloudWidget';
 
 interface FileManagerProps {
   onFilesAdd: (files: File[]) => void;
+  onTrackAdd?: (track: any) => void;
 }
 
-export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
+export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd, onTrackAdd }) => {
   const [dragOver, setDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -196,6 +198,15 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd }) => {
         onChange={handleFileSelect}
         className="hidden"
       />
+
+      {/* SoundCloud Widget */}
+      {onTrackAdd && (
+        <>
+          <div className="border-t border-border pt-4">
+            <SoundCloudWidget onTrackAdd={onTrackAdd} />
+          </div>
+        </>
+      )}
 
       {/* Supported Formats */}
       <div className="text-xs text-muted-foreground">

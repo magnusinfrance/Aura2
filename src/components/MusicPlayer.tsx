@@ -224,6 +224,10 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     setCurrentPlaylistQueue(prev => [...prev, ...newTracks]);
   }, [extractMetadata]);
 
+  const addSingleTrack = useCallback((track: Track) => {
+    addFiles([track]);
+  }, [addFiles]);
+
   const handleSavePlaylist = (name: string, tracks: Track[]) => {
     const newPlaylist: Playlist = {
       id: Math.random().toString(36),
@@ -338,7 +342,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
           <>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <Card className="bg-player-surface border-border p-4">
-                <FileManager onFilesAdd={addFiles} />
+                <FileManager onFilesAdd={addFiles} onTrackAdd={addSingleTrack} />
               </Card>
               
               <Card className="bg-player-surface border-border overflow-hidden">
@@ -403,7 +407,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
             <div className="col-span-12 grid grid-cols-12 gap-4 mb-4">
               <div className="col-span-3">
                 <Card className="bg-player-surface border-border p-4">
-                  <FileManager onFilesAdd={addFiles} />
+                  <FileManager onFilesAdd={addFiles} onTrackAdd={addSingleTrack} />
                 </Card>
               </div>
               
@@ -455,7 +459,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
             {/* Left Side - File Manager */}
             <div className="col-span-12 lg:col-span-3 space-y-4">
               <Card className="bg-player-surface border-border p-4">
-                <FileManager onFilesAdd={addFiles} />
+                <FileManager onFilesAdd={addFiles} onTrackAdd={addSingleTrack} />
               </Card>
             </div>
 
