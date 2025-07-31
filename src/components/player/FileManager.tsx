@@ -179,6 +179,12 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd, onTrackAdd
         </Button>
       </div>
 
+      {/* Supported Formats */}
+      <div className="text-xs text-muted-foreground">
+        <p className="font-medium mb-1">Supported formats:</p>
+        <p>{supportedFormats.join(', ')}</p>
+      </div>
+
       {/* Hidden File Inputs */}
       <input
         ref={fileInputRef}
@@ -208,11 +214,6 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd, onTrackAdd
         </>
       )}
 
-      {/* Supported Formats */}
-      <div className="text-xs text-muted-foreground">
-        <p className="font-medium mb-1">Supported formats:</p>
-        <p>{supportedFormats.join(', ')}</p>
-      </div>
 
     </div>
   );
