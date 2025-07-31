@@ -55,20 +55,37 @@ export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }
       return;
     }
 
+    // Check if it's a playlist/set URL
+    if (url.includes('/sets/')) {
+      toast({
+        variant: "destructive",
+        title: "Playlist URLs not supported",
+        description: "Please copy individual track URLs from the playlist instead. Click the track names to get their URLs.",
+      });
+      return;
+    }
+
+    // Check if it's an artist profile URL
+    if (url.match(/soundcloud\.com\/[^\/]+\/?$/) && !url.includes('/tracks/')) {
+      toast({
+        variant: "destructive", 
+        title: "Artist profile URLs not supported",
+        description: "Please copy individual track URLs from the artist's page instead.",
+      });
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       const trackPath = extractSoundCloudId(url);
       if (!trackPath) {
-        throw new Error('Could not extract track information from URL');
+        throw new Error('Please use individual track URLs, not playlists or artist profiles');
       }
 
-      // Handle playlists/sets
-      if (url.includes('/sets/')) {
-        toast({
-          title: "Playlist detected",
-          description: "Playlist URLs are supported! Individual tracks will be extracted.",
-        });
+      // Additional validation for track URLs
+      if (!trackPath.includes('/')) {
+        throw new Error('Invalid track URL format');
       }
 
       // Extract basic info from URL for display
@@ -151,7 +168,7 @@ export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }
       
       <div className="flex space-x-2">
         <Input
-          placeholder="Paste SoundCloud track or playlist URL..."
+          placeholder="Paste individual SoundCloud track URL..."
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyPress={handleKeyPress}
@@ -192,7 +209,7 @@ export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }
       </div>
       
       <p className="text-xs text-muted-foreground">
-        Track & playlist URLs • Artist search opens SoundCloud in new tab
+        <strong>Individual track URLs only</strong> • For playlists: click individual track names to get their URLs
       </p>
     </div>
   );
