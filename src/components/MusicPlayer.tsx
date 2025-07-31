@@ -123,10 +123,18 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   }, [outputGain, masterGainNode]);
 
   const playTrack = useCallback(async (track: Track) => {
+    setCurrentTrack(track);
+    setIsPlaying(true);
+    
+    // Handle SoundCloud tracks differently
+    if (track.soundcloud) {
+      // SoundCloud tracks will be handled by the SoundCloudPlayer component
+      return;
+    }
+    
+    // Handle regular audio files
     if (audioRef.current) {
       audioRef.current.src = track.url;
-      setCurrentTrack(track);
-      setIsPlaying(true);
       
       try {
         await audioRef.current.play();
@@ -138,18 +146,28 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   }, []);
 
   const togglePlayPause = async () => {
+    if (!currentTrack) return;
+    
+    // Handle SoundCloud tracks differently
+    if (currentTrack.soundcloud) {
+      // SoundCloud playback will be handled by the SoundCloudPlayer component
+      setIsPlaying(!isPlaying);
+      return;
+    }
+    
+    // Handle regular audio files
     if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      } else {
-        try {
+      try {
+        if (isPlaying) {
+          audioRef.current.pause();
+          setIsPlaying(false);
+        } else {
           await audioRef.current.play();
           setIsPlaying(true);
-        } catch (error) {
-          console.warn('Play failed:', error);
-          setIsPlaying(false);
         }
+      } catch (error) {
+        console.warn('Play failed:', error);
+        setIsPlaying(false);
       }
     }
   };
@@ -227,6 +245,24 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const addSingleTrack = useCallback((track: Track) => {
     addFiles([track]);
   }, [addFiles]);
+
+  const handleSoundCloudPlay = useCallback(() => {
+    setIsPlaying(true);
+  }, []);
+
+  const handleSoundCloudPause = useCallback(() => {
+    setIsPlaying(false);
+  }, []);
+
+  const handleSoundCloudEnded = useCallback(() => {
+    setIsPlaying(false);
+    handleNext();
+  }, []);
+
+  const handleSoundCloudTimeUpdate = useCallback((currentTime: number, duration: number) => {
+    setCurrentTime(currentTime);
+    setDuration(duration);
+  }, []);
 
   const handleSavePlaylist = (name: string, tracks: Track[]) => {
     const newPlaylist: Playlist = {
@@ -417,6 +453,11 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
                     track={currentTrack} 
                     isPlaying={isPlaying} 
                     analyser={analyserNode}
+                    onSoundCloudPlay={handleSoundCloudPlay}
+                    onSoundCloudPause={handleSoundCloudPause}
+                    onSoundCloudEnded={handleSoundCloudEnded}
+                    onSoundCloudTimeUpdate={handleSoundCloudTimeUpdate}
+                    volume={volume}
                   />
                 </Card>
               </div>
@@ -471,6 +512,11 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
                   track={currentTrack} 
                   isPlaying={isPlaying} 
                   analyser={analyserNode}
+                  onSoundCloudPlay={handleSoundCloudPlay}
+                  onSoundCloudPause={handleSoundCloudPause}
+                  onSoundCloudEnded={handleSoundCloudEnded}
+                  onSoundCloudTimeUpdate={handleSoundCloudTimeUpdate}
+                  volume={volume}
                 />
               </Card>
 
