@@ -39,12 +39,18 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({
 
   // Also try to extract album art when playing starts
   useEffect(() => {
-    if (track?.file && isPlaying && !albumArt) {
+    if (track?.file && isPlaying && !albumArt && !isLoading) {
+      console.log('Trying to extract album art on play start for:', track.name);
       extractAlbumArt(track.file);
     }
-  }, [track, isPlaying, albumArt]);
+  }, [track, isPlaying, albumArt, isLoading]);
 
   const extractAlbumArt = async (file: File) => {
+    if (isLoading) return; // Prevent multiple simultaneous extractions
+    
+    setIsLoading(true);
+    console.log('Extracting album art for:', file.name);
+    
     try {
       // Try to extract embedded album art
       const buffer = await file.arrayBuffer();
@@ -66,6 +72,8 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({
       searchMusicBrainz(track?.name || '', track?.artist || '');
     } catch (error) {
       console.error('Error extracting album art:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 

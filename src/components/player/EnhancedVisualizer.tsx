@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Activity, Zap, Circle, BarChart3, Waves, Target } from 'lucide-react';
+import { Activity, Zap, Circle, BarChart3, Waves, Target, Radio, Sparkles, Grid3X3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -9,7 +9,7 @@ interface EnhancedVisualizerProps {
   isPlaying: boolean;
 }
 
-type VisualizationType = 'bars' | 'wave' | 'circle' | 'particles' | 'spectrum';
+type VisualizationType = 'bars' | 'wave' | 'circle' | 'particles' | 'spectrum' | 'waveform' | 'galaxy' | 'matrix';
 
 export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({ 
   analyser, 
@@ -50,6 +50,15 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
           break;
         case 'spectrum':
           drawSpectrum(ctx, dataArray, canvas);
+          break;
+        case 'waveform':
+          drawWaveform(ctx, dataArray, canvas);
+          break;
+        case 'galaxy':
+          drawGalaxy(ctx, dataArray, canvas);
+          break;
+        case 'matrix':
+          drawMatrix(ctx, dataArray, canvas);
           break;
       }
 
@@ -246,12 +255,99 @@ export const EnhancedVisualizer: React.FC<EnhancedVisualizerProps> = ({
     }
   };
 
+  // New Waveform visualizer
+  const drawWaveform = (ctx: CanvasRenderingContext2D, dataArray: Uint8Array, canvas: HTMLCanvasElement) => {
+    const centerY = canvas.height / 2;
+    ctx.lineWidth = 3;
+    
+    const gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+    gradient.addColorStop(0, 'hsl(260, 100%, 60%)');
+    gradient.addColorStop(0.5, 'hsl(300, 100%, 70%)');
+    gradient.addColorStop(1, 'hsl(340, 100%, 80%)');
+    
+    ctx.strokeStyle = gradient;
+    ctx.shadowColor = 'hsl(300, 100%, 70%)';
+    ctx.shadowBlur = 15;
+    
+    ctx.beginPath();
+    for (let i = 0; i < dataArray.length; i++) {
+      const x = (i / dataArray.length) * canvas.width;
+      const amplitude = (dataArray[i] / 255) * (canvas.height / 3);
+      const y = centerY + Math.sin(i * 0.1) * amplitude;
+      
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  };
+
+  // Galaxy spiral visualizer
+  const drawGalaxy = (ctx: CanvasRenderingContext2D, dataArray: Uint8Array, canvas: HTMLCanvasElement) => {
+    const centerX = canvas.width / 2;
+    const centerY = canvas.height / 2;
+    const maxRadius = Math.min(centerX, centerY) - 20;
+    
+    for (let i = 0; i < dataArray.length; i += 2) {
+      const amplitude = dataArray[i] / 255;
+      if (amplitude > 0.1) {
+        const angle = (i / dataArray.length) * Math.PI * 6; // Multiple spirals
+        const radius = (amplitude * maxRadius) + (i / dataArray.length) * maxRadius * 0.5;
+        
+        const x = centerX + Math.cos(angle) * radius;
+        const y = centerY + Math.sin(angle) * radius;
+        
+        const size = amplitude * 5;
+        const hue = (i / dataArray.length) * 360;
+        
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, size * 2);
+        gradient.addColorStop(0, `hsla(${hue}, 100%, 70%, ${amplitude})`);
+        gradient.addColorStop(1, `hsla(${hue}, 100%, 50%, 0)`);
+        
+        ctx.fillStyle = gradient;
+        ctx.beginPath();
+        ctx.arc(x, y, size, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  };
+
+  // Matrix rain effect
+  const drawMatrix = (ctx: CanvasRenderingContext2D, dataArray: Uint8Array, canvas: HTMLCanvasElement) => {
+    const columns = Math.floor(canvas.width / 20);
+    const fontSize = 16;
+    ctx.font = `${fontSize}px monospace`;
+    
+    for (let i = 0; i < columns; i++) {
+      const amplitude = dataArray[i % dataArray.length] / 255;
+      if (amplitude > 0.2) {
+        const x = i * 20;
+        const numChars = Math.floor(amplitude * 20);
+        
+        for (let j = 0; j < numChars; j++) {
+          const y = (j * fontSize) % canvas.height;
+          const alpha = amplitude * (1 - j / numChars);
+          const char = String.fromCharCode(0x30A0 + Math.random() * 96);
+          
+          ctx.fillStyle = `hsla(120, 100%, 50%, ${alpha})`;
+          ctx.shadowColor = 'hsl(120, 100%, 50%)';
+          ctx.shadowBlur = 10;
+          ctx.fillText(char, x, y);
+        }
+      }
+    }
+    ctx.shadowBlur = 0;
+  };
+
   const visualizationOptions = [
     { value: 'bars', label: 'Bars', icon: BarChart3 },
     { value: 'wave', label: 'Wave', icon: Waves },
     { value: 'circle', label: 'Circle', icon: Target },
     { value: 'particles', label: 'Particles', icon: Circle },
     { value: 'spectrum', label: 'Spectrum', icon: Activity },
+    { value: 'waveform', label: 'Waveform', icon: Radio },
+    { value: 'galaxy', label: 'Galaxy', icon: Sparkles },
+    { value: 'matrix', label: 'Matrix', icon: Grid3X3 },
   ];
 
   return (
