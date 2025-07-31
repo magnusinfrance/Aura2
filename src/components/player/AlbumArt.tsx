@@ -20,13 +20,13 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({
   const { toast } = useToast();
 
   const sizeClasses = {
-    sm: 'w-12 h-12',
+    sm: 'w-8 h-8',
     md: 'w-24 h-24',
     lg: 'w-48 h-48'
   };
 
   const iconSizes = {
-    sm: 'h-6 w-6',
+    sm: 'h-4 w-4',
     md: 'h-12 w-12',
     lg: 'h-24 w-24'
   };

@@ -23,8 +23,14 @@ export const useLyrics = () => {
 
     try {
       // Try Lyrics.ovh API first (free, no key required)
+      const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
       const response = await fetch(
-        `https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`
+        `${proxyUrl}https://api.lyrics.ovh/v1/${encodeURIComponent(artist)}/${encodeURIComponent(title)}`,
+        {
+          headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+          }
+        }
       );
 
       if (response.ok) {
@@ -42,30 +48,18 @@ export const useLyrics = () => {
         }
       }
 
-      // Fallback: try a different approach with Genius-style search
-      try {
-        const searchResponse = await fetch(
-          `https://api.genius.com/search?q=${encodeURIComponent(`${artist} ${title}`)}`
-        );
-        
-        if (searchResponse.ok) {
-          // Note: This is a placeholder for Genius API integration
-          // In a real implementation, you'd need a Genius API key
-          setLyrics({
-            lyrics: 'Lyrics not available from our sources.',
-            source: 'manual',
-            error: 'No lyrics found from available sources'
-          });
-        } else {
-          throw new Error('No lyrics sources available');
-        }
-      } catch (fallbackError) {
-        setLyrics({
-          lyrics: '',
-          source: '',
-          error: 'Unable to fetch lyrics. Please check your internet connection.'
-        });
-      }
+      // Fallback: Simple placeholder since CORS will likely block external APIs
+      setLyrics({
+        lyrics: `Sorry, lyrics are not available for "${title}" by ${artist}.\n\nThis feature requires a backend service to bypass CORS restrictions.\n\nIn a production app, you would typically:\n- Set up a backend proxy to fetch lyrics\n- Use an API key with proper authentication\n- Implement fallback sources for better coverage`,
+        source: 'info',
+        error: 'CORS restriction - requires backend proxy'
+      });
+
+      toast({
+        title: "Lyrics unavailable",
+        description: "This demo has limited lyrics access due to CORS restrictions",
+        variant: "destructive"
+      });
     } catch (error) {
       console.error('Error fetching lyrics:', error);
       setLyrics({
