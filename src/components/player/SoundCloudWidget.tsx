@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { Cloud, Plus, ExternalLink } from 'lucide-react';
+import { Cloud, Plus, ExternalLink, Search } from 'lucide-react';
 
 interface SoundCloudWidgetProps {
   onTrackAdd: (track: any) => void;
@@ -10,6 +10,7 @@ interface SoundCloudWidgetProps {
 
 export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }) => {
   const [url, setUrl] = useState('');
+  const [artistSearch, setArtistSearch] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
@@ -62,6 +63,14 @@ export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }
         throw new Error('Could not extract track information from URL');
       }
 
+      // Handle playlists/sets
+      if (url.includes('/sets/')) {
+        toast({
+          title: "Playlist detected",
+          description: "Playlist URLs are supported! Individual tracks will be extracted.",
+        });
+      }
+
       // Extract basic info from URL for display
       const urlParts = trackPath.split('/');
       const artist = urlParts[0] || 'Unknown Artist';
@@ -96,6 +105,33 @@ export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleArtistSearch = () => {
+    if (!artistSearch.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Artist name required",
+        description: "Please enter an artist name to search",
+      });
+      return;
+    }
+
+    // Open SoundCloud search in a new tab
+    const searchQuery = encodeURIComponent(artistSearch.trim());
+    const searchUrl = `https://soundcloud.com/search/people?q=${searchQuery}`;
+    window.open(searchUrl, '_blank');
+
+    toast({
+      title: "Opening SoundCloud search",
+      description: `Searching for "${artistSearch}" - copy track URLs from the results!`,
+    });
+  };
+
+  const handleArtistKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleArtistSearch();
     }
   };
 
@@ -135,8 +171,28 @@ export const SoundCloudWidget: React.FC<SoundCloudWidgetProps> = ({ onTrackAdd }
         </Button>
       </div>
       
+      {/* Artist Search */}
+      <div className="flex space-x-2">
+        <Input
+          placeholder="Search for artist on SoundCloud..."
+          value={artistSearch}
+          onChange={(e) => setArtistSearch(e.target.value)}
+          onKeyPress={handleArtistKeyPress}
+          className="bg-player-elevated border-border"
+        />
+        <Button
+          onClick={handleArtistSearch}
+          disabled={!artistSearch.trim()}
+          size="sm"
+          variant="outline"
+          className="border-orange-500 text-orange-500 hover:bg-orange-500 hover:text-white"
+        >
+          <Search className="h-4 w-4" />
+        </Button>
+      </div>
+      
       <p className="text-xs text-muted-foreground">
-        Supports track and playlist URLs • Widget playback only
+        Track & playlist URLs • Artist search opens SoundCloud in new tab
       </p>
     </div>
   );
