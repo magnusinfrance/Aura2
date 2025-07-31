@@ -32,7 +32,7 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
   audioElement, 
   audioContext, 
   analyser,
-  outputGain = 0.6, 
+  outputGain = 0.3, 
   onOutputGainChange,
   fadeInDuration,
   fadeOutDuration,
@@ -90,9 +90,9 @@ export const AudioSettings: React.FC<AudioSettingsProps> = ({
                 <Slider
                   value={[outputGain]}
                   onValueChange={(value) => onOutputGainChange?.(value[0])}
-                  min={0.1}
+                  min={0.0}
                   max={1.0}
-                  step={0.05}
+                  step={0.01}
                   className="flex-1"
                 />
                 <span className="text-xs text-muted-foreground min-w-[3ch]">

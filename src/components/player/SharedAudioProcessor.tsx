@@ -73,7 +73,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
         // Configure with safer values for production
         analyser.fftSize = 256;
         analyser.smoothingTimeConstant = 0.8;
-        masterGain.gain.value = 0.6;
+        masterGain.gain.value = 0.3;
 
         // Connect: source -> analyser -> masterGain -> destination
         source.connect(analyser);
