@@ -52,7 +52,7 @@ export const DraggableQueueItem: React.FC<DraggableQueueItemProps> = ({
       ref={setNodeRef}
       style={style}
       className={`
-        group flex items-center ${compact ? 'space-x-1 py-1 px-1' : 'space-x-2 py-1 px-2'} rounded-md transition-all duration-200
+        group flex items-center ${compact ? 'space-x-1 py-0.5 px-1' : 'space-x-2 py-0.5 px-2'} rounded-md transition-all duration-200
         ${isDragging ? 'opacity-50 bg-player-elevated scale-105 shadow-lg' : ''}
         ${isCurrentTrack ? 'bg-primary/10 border border-primary/30' : 'hover:bg-player-elevated'}
         cursor-pointer

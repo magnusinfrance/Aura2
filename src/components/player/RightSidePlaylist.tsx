@@ -309,7 +309,7 @@ export const RightSidePlaylist: React.FC<RightSidePlaylistProps> = ({
 
           {/* Playlist */}
           <ScrollArea className="flex-1">
-            <div className="p-2">
+            <div className="p-1">
               {currentPlaylist.length === 0 ? (
                 <div className="text-center py-8">
                   <Music className="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
@@ -336,7 +336,7 @@ export const RightSidePlaylist: React.FC<RightSidePlaylistProps> = ({
                     items={filteredPlaylist.map(track => track.id)}
                     strategy={verticalListSortingStrategy}
                   >
-                    <div className="space-y-0.5">
+                    <div className="space-y-0">
                       {filteredPlaylist.map((track, index) => {
                         const isCurrentTrack = currentTrack?.id === track.id;
                         const actualIndex = currentPlaylist.findIndex(t => t.id === track.id);
