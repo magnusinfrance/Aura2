@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button';
 import { ThemeProvider } from '@/hooks/useTheme';
 import { useAudioMetadata } from '@/hooks/useAudioMetadata';
 import { Settings, Maximize2, Minimize2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import auraLogo from '@/assets/aura-logo-transparent.png';
 
 export interface Track {
@@ -62,10 +63,10 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const [viewMode, setViewMode] = useState<'list' | 'grid' | 'album'>('list');
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
-  const [trackListView, setTrackListView] = useState<'list' | 'grid' | 'album' | 'minimal'>('list');
   const [outputGain, setOutputGain] = useState(0.6);
 
   const { extractMetadata } = useAudioMetadata();
+  const { toast } = useToast();
   
   // Get analyser from shared audio processor
   const { analyserNode, audioContext, masterGainNode } = useSharedAudioProcessor();
@@ -246,6 +247,21 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     addFiles([track]);
   }, [addFiles]);
 
+  const clearMusicLibrary = useCallback(() => {
+    setTracks([]);
+    setCurrentPlaylistQueue([]);
+    setCurrentTrack(null);
+    setIsPlaying(false);
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+    }
+    toast({
+      title: "Music library cleared",
+      description: "All tracks have been removed from your library",
+    });
+  }, []);
+
   const handleSoundCloudPlay = useCallback(() => {
     setIsPlaying(true);
   }, []);
@@ -346,14 +362,13 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
             <SettingsPanel 
               layout={layout} 
               setLayout={setLayout}
-              trackListView={trackListView}
-              setTrackListView={setTrackListView}
               audioElement={audioRef.current}
               audioContext={audioContext}
               analyser={analyserNode}
               outputGain={outputGain}
               onOutputGainChange={setOutputGain}
               onFilesAdd={addFiles}
+              onClearLibrary={clearMusicLibrary}
             />
             <Button
               variant="ghost"
@@ -398,7 +413,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               onTrackSelect={playTrack}
               onTrackRemove={handleRemoveFromQueue}
               onReorder={handleQueueReorder}
-              trackListView={trackListView}
+              trackListView="list"
             />
           </>
         ) : layout === 'focus' ? (
@@ -527,20 +542,12 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
                   style={{ backgroundImage: `url(/lovable-uploads/db049072-b49c-43cc-8c24-20f9689b97c9.png)` }}
                 />
                  <div className="relative z-10">
-                  {trackListView === 'minimal' ? (
-                    <TrackListMinimal
-                      tracks={tracks}
-                      currentTrack={currentTrack}
-                      onTrackSelect={playTrack}
-                    />
-                  ) : (
-                    <TrackList 
-                      tracks={tracks}
-                      currentTrack={currentTrack}
-                      onTrackSelect={playTrack}
-                      viewMode={trackListView}
-                    />
-                  )}
+                  <TrackList 
+                    tracks={tracks}
+                    currentTrack={currentTrack}
+                    onTrackSelect={playTrack}
+                    viewMode="list"
+                  />
                 </div>
               </Card>
             </div>

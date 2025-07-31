@@ -13,32 +13,30 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { Settings, Info, FileType, Sliders, Volume2 } from 'lucide-react';
+import { Settings, Info, FileType, Sliders, Volume2, Trash2 } from 'lucide-react';
 
 interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
   setLayout: (layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus') => void;
-  trackListView: 'list' | 'grid' | 'album' | 'minimal';
-  setTrackListView: (view: 'list' | 'grid' | 'album' | 'minimal') => void;
   audioElement?: HTMLAudioElement | null;
   audioContext?: AudioContext | null;
   analyser?: AnalyserNode | null;
   outputGain?: number;
   onOutputGainChange?: (gain: number) => void;
   onFilesAdd?: (files: any[]) => void;
+  onClearLibrary?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
   layout, 
   setLayout, 
-  trackListView, 
-  setTrackListView, 
   audioElement, 
   audioContext, 
   analyser,
   outputGain = 0.6, 
   onOutputGainChange,
-  onFilesAdd
+  onFilesAdd,
+  onClearLibrary
 }) => {
   return (
     <DropdownMenu>
@@ -57,19 +55,6 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <div>
             <label className="text-xs text-muted-foreground mb-1 block">Layout</label>
             <LayoutSelector layout={layout} setLayout={setLayout} />
-          </div>
-          <div className="mt-3">
-            <label className="text-xs text-muted-foreground mb-1 block">Track List View</label>
-            <select 
-              value={trackListView} 
-              onChange={(e) => setTrackListView(e.target.value as any)}
-              className="w-full px-2 py-1 text-xs bg-player-elevated border border-border rounded"
-            >
-              <option value="list">Detailed List</option>
-              <option value="grid">Grid View</option>
-              <option value="album">Album View</option>
-              <option value="minimal">Minimal Queue</option>
-            </select>
           </div>
         </div>
         
@@ -110,6 +95,26 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
           <div>• MP3, FLAC, WAV, OGG</div>
           <div>• M4A, AAC, WMA</div>
           <div>• 16-bit & 24-bit support</div>
+        </div>
+        
+        <DropdownMenuSeparator />
+        
+        <DropdownMenuLabel className="flex items-center gap-2">
+          <Trash2 className="h-4 w-4" />
+          Music Library
+        </DropdownMenuLabel>
+        <div className="p-2">
+          {onClearLibrary && (
+            <Button
+              onClick={onClearLibrary}
+              variant="destructive"
+              size="sm"
+              className="w-full"
+            >
+              <Trash2 className="h-4 w-4 mr-2" />
+              Clear Library
+            </Button>
+          )}
         </div>
         
         <DropdownMenuSeparator />
