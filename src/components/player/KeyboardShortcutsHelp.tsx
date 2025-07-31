@@ -16,7 +16,7 @@ export const KeyboardShortcutsHelp: React.FC = () => {
           <Keyboard className="h-4 w-4" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-72 p-4 bg-popover border-border" align="center">
+      <PopoverContent className="w-72 p-4 bg-popover text-popover-foreground border border-border" align="center">
         <div className="space-y-3">
           <div className="flex items-center space-x-2">
             <Keyboard className="h-4 w-4 text-primary" />

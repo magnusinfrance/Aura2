@@ -22,7 +22,7 @@ export const FileManager: React.FC<FileManagerProps> = ({ onFilesAdd, onTrackAdd
   const { toast } = useToast();
 
   const supportedFormats = [
-    '.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma', '.mod', '.s3m', '.xm', '.it'
+    '.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma' // Tracker modules (.mod, .s3m, .xm, .it) need web audio libraries
   ];
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {

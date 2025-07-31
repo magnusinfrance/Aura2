@@ -132,7 +132,7 @@ export const RightSidePlaylist: React.FC<RightSidePlaylistProps> = ({
     const files = Array.from(event.dataTransfer.files);
     const audioFiles = files.filter(file => {
       const extension = '.' + file.name.split('.').pop()?.toLowerCase();
-      return ['.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma', '.mod', '.s3m', '.xm', '.it'].includes(extension);
+      return ['.mp3', '.wav', '.flac', '.ogg', '.aac', '.m4a', '.wma'].includes(extension);
     });
 
     if (audioFiles.length > 0) {

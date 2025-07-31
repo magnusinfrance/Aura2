@@ -40,16 +40,11 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({
     }
   }, [track]);
 
-  // Also try to extract album art when playing starts
-  useEffect(() => {
-    if (track?.file && isPlaying && !albumArt && !isLoading) {
-      console.log('Trying to extract album art on play start for:', track.name);
-      extractAlbumArt(track.file);
-    }
-  }, [track, isPlaying, albumArt, isLoading]);
+  // Extract album art only when track changes, not on every play state change
+  // to prevent constant re-rendering and flickering
 
   const extractAlbumArt = async (file: File) => {
-    if (isLoading) return; // Prevent multiple simultaneous extractions
+    if (isLoading || albumArt) return; // Prevent multiple extractions and avoid re-extracting
     
     setIsLoading(true);
     console.log('Extracting album art for:', file.name);
