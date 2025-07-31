@@ -15,6 +15,7 @@ import { EnhancedAudioEffects } from './player/EnhancedAudioEffects';
 import { EqualizerPopup } from './player/EqualizerPopup';
 import { SharedAudioProcessorProvider, useSharedAudioProcessor } from './player/SharedAudioProcessor';
 import { QueueManager } from './player/QueueManager';
+import { LyricsPanel } from './player/LyricsPanel';
 import { TrackListMinimal } from './player/TrackListMinimal';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
@@ -64,6 +65,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
   const [currentPlaylistQueue, setCurrentPlaylistQueue] = useState<Track[]>([]);
   const [layout, setLayout] = useState<'standard' | 'compact' | 'mini' | 'widescreen' | 'focus'>('standard');
   const [outputGain, setOutputGain] = useState(0.6);
+  const [showLyrics, setShowLyrics] = useState(false);
 
   const { extractMetadata } = useAudioMetadata();
   const { toast } = useToast();
@@ -385,6 +387,7 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
               onOutputGainChange={setOutputGain}
               onFilesAdd={addFiles}
               onClearLibrary={clearMusicLibrary}
+              onShowLyrics={() => setShowLyrics(true)}
             />
             <Button
               variant="ghost"
@@ -611,6 +614,13 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
           }}
         />
       </div>
+
+      {/* Lyrics Panel */}
+      <LyricsPanel 
+        track={currentTrack}
+        isOpen={showLyrics}
+        onClose={() => setShowLyrics(false)}
+      />
     </div>
   );
 };

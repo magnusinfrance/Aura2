@@ -3,6 +3,7 @@ import { ThemeLayoutSettings } from './settings/ThemeLayoutSettings';
 import { AudioSettings } from './settings/AudioSettings';
 import { LibrarySettings } from './settings/LibrarySettings';
 import { InfoSettings } from './settings/InfoSettings';
+import { LyricsSettings } from './settings/LyricsSettings';
 
 interface SettingsPanelProps {
   layout: 'standard' | 'compact' | 'mini' | 'widescreen' | 'focus';
@@ -14,6 +15,7 @@ interface SettingsPanelProps {
   onOutputGainChange?: (gain: number) => void;
   onFilesAdd?: (files: any[]) => void;
   onClearLibrary?: () => void;
+  onShowLyrics?: () => void;
 }
 
 export const SettingsPanel: React.FC<SettingsPanelProps> = ({ 
@@ -25,7 +27,8 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
   outputGain = 0.6, 
   onOutputGainChange,
   onFilesAdd,
-  onClearLibrary
+  onClearLibrary,
+  onShowLyrics
 }) => {
   return (
     <div className="flex items-center gap-1">
@@ -39,6 +42,9 @@ export const SettingsPanel: React.FC<SettingsPanelProps> = ({
         analyser={analyser}
         outputGain={outputGain}
         onOutputGainChange={onOutputGainChange}
+      />
+      <LyricsSettings 
+        onShowLyrics={onShowLyrics || (() => {})}
       />
       <LibrarySettings
         onFilesAdd={onFilesAdd}

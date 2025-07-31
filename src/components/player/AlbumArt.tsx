@@ -33,7 +33,10 @@ export const AlbumArt: React.FC<AlbumArtProps> = ({
 
   useEffect(() => {
     if (track?.file) {
+      setAlbumArt(null); // Reset previous album art
       extractAlbumArt(track.file);
+    } else {
+      setAlbumArt(null); // Clear album art if no file
     }
   }, [track]);
 
