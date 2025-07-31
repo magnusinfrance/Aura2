@@ -81,10 +81,15 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
 
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration);
-    const handleEnded = () => {
+    const handleEnded = async () => {
       if (repeatMode === 'one') {
         audio.currentTime = 0;
-        audio.play();
+        try {
+          await audio.play();
+        } catch (error) {
+          console.warn('Repeat play failed:', error);
+          setIsPlaying(false);
+        }
       } else {
         handleNext();
       }
@@ -114,23 +119,35 @@ const MusicPlayerContent: React.FC<MusicPlayerContentProps> = ({ audioRef }) => 
     }
   }, [outputGain, masterGainNode]);
 
-  const playTrack = useCallback((track: Track) => {
+  const playTrack = useCallback(async (track: Track) => {
     if (audioRef.current) {
       audioRef.current.src = track.url;
       setCurrentTrack(track);
       setIsPlaying(true);
-      audioRef.current.play();
+      
+      try {
+        await audioRef.current.play();
+      } catch (error) {
+        console.warn('Play failed:', error);
+        setIsPlaying(false);
+      }
     }
   }, []);
 
-  const togglePlayPause = () => {
+  const togglePlayPause = async () => {
     if (audioRef.current) {
       if (isPlaying) {
         audioRef.current.pause();
+        setIsPlaying(false);
       } else {
-        audioRef.current.play();
+        try {
+          await audioRef.current.play();
+          setIsPlaying(true);
+        } catch (error) {
+          console.warn('Play failed:', error);
+          setIsPlaying(false);
+        }
       }
-      setIsPlaying(!isPlaying);
     }
   };
 

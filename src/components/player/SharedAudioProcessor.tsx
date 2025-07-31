@@ -42,12 +42,17 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
       return;
     }
 
+    // Only initialize if we don't already have nodes for this audio element
+    if (sourceNode && audioContext) {
+      return;
+    }
+
     try {
       // Create or reuse AudioContext
       const ctx = audioContext || new AudioContext();
       
-      // Only create source if we don't have one
-      if (!sourceNode) {
+      // Only create source if we don't have one or if the context is new
+      if (!sourceNode || !audioContext) {
         const source = ctx.createMediaElementSource(audioElement);
         const analyser = ctx.createAnalyser();
         const masterGain = ctx.createGain();
@@ -68,12 +73,14 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
       }
     } catch (error) {
       console.warn('Failed to initialize shared audio processor:', error);
+      // If this fails, clean up and try again
+      cleanup();
     }
 
     return () => {
       // Don't cleanup on unmount, only when audioElement changes
     };
-  }, [audioElement]);
+  }, [audioElement, sourceNode, audioContext]);
 
   const cleanup = () => {
     connectedNodes.current.forEach(node => {
