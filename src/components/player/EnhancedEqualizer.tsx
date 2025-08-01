@@ -108,18 +108,16 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
         filtersRef.current[filtersRef.current.length - 1].connect(gainNodeRef.current);
         
         // Use the shared audio processor to insert our EQ chain
-        connectToChain(filtersRef.current[0], gainNodeRef.current);
+        connectToChain(filtersRef.current[0], gainNodeRef.current, 'equalizer');
         console.log('Equalizer connected successfully');
       } else {
         console.log('Disconnecting equalizer...');
         // Disconnect equalizer when disabled
-        if (filtersRef.current.length > 0) {
-          try {
-            disconnectFromChain(filtersRef.current[0]);
-            console.log('Equalizer disconnected successfully');
-          } catch (error) {
-            console.warn('Failed to disconnect equalizer:', error);
-          }
+        try {
+          disconnectFromChain('equalizer');
+          console.log('Equalizer disconnected successfully');
+        } catch (error) {
+          console.warn('Failed to disconnect equalizer:', error);
         }
       }
     } catch (error) {

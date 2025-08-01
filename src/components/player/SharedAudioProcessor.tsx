@@ -5,10 +5,11 @@ interface SharedAudioProcessorContextType {
   sourceNode: MediaElementAudioSourceNode | null;
   analyserNode: AnalyserNode | null;
   masterGainNode: GainNode | null;
-  connectToChain: (inputNode: AudioNode, outputNode?: AudioNode) => void;
-  disconnectFromChain: (node: AudioNode) => void;
+  connectToChain: (inputNode: AudioNode, outputNode?: AudioNode, processorId?: string) => void;
+  disconnectFromChain: (processorId: string) => void;
   resetAudioBus: () => void;
   initializeOnUserAction: () => Promise<void>;
+  getAnalyserData: () => { analyser: AnalyserNode | null; isConnected: boolean };
 }
 
 const SharedAudioProcessorContext = createContext<SharedAudioProcessorContextType | null>(null);
@@ -35,6 +36,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
   const [analyserNode, setAnalyserNode] = useState<AnalyserNode | null>(null);
   const [masterGainNode, setMasterGainNode] = useState<GainNode | null>(null);
   
+  const connectedProcessors = useRef<Map<string, { input: AudioNode; output: AudioNode }>>(new Map());
   const connectedNodes = useRef<Set<AudioNode>>(new Set());
 
   useEffect(() => {
@@ -129,80 +131,115 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     setAudioContext(null);
   };
 
-  const connectToChain = (inputNode: AudioNode, outputNode?: AudioNode) => {
+  const connectToChain = (inputNode: AudioNode, outputNode?: AudioNode, processorId?: string) => {
     if (!masterGainNode || !analyserNode) {
       console.warn('Missing required nodes for audio chain connection');
       return;
     }
     
+    const id = processorId || 'default';
+    
     try {
-      // Check if connection already exists
-      if (connectedNodes.current.has(inputNode)) {
-        console.log('Node already connected to chain, skipping...');
-        return;
+      // Check if processor already exists
+      if (connectedProcessors.current.has(id)) {
+        console.log(`Processor ${id} already connected, disconnecting first`);
+        disconnectFromChain(id);
       }
       
-      console.log('Connecting node to audio chain...');
+      console.log(`Connecting processor ${id} to audio chain...`);
       
-      // Safely disconnect existing direct connection between analyser and masterGain
-      try {
-        analyserNode.disconnect(masterGainNode);
-        console.log('Disconnected direct analyser->masterGain connection');
-      } catch (e) {
-        // Connection might not exist, continue
-        console.log('No direct connection to disconnect');
-      }
+      // Store processor info
+      connectedProcessors.current.set(id, {
+        input: inputNode,
+        output: outputNode || inputNode
+      });
       
-      // Connect new chain: analyser -> inputNode -> (outputNode || masterGain)
-      analyserNode.connect(inputNode);
-      inputNode.connect(outputNode || masterGainNode);
-      connectedNodes.current.add(inputNode);
+      // Rebuild the entire chain
+      rebuildAudioChain();
       
-      console.log('Node connected to audio chain successfully');
+      console.log(`Processor ${id} connected successfully`);
       
     } catch (error) {
-      console.error('Failed to connect node to chain:', error);
-      // Restore direct connection as fallback
-      try {
-        if (analyserNode && masterGainNode) {
-          // First disconnect everything to clean up
-          analyserNode.disconnect();
-          
-          // Reconnect directly
-          analyserNode.connect(masterGainNode);
-          console.log('Fallback connection restored');
-        }
-      } catch (fallbackError) {
-        console.error('Fallback connection failed:', fallbackError);
-      }
+      console.error(`Failed to connect processor ${id}:`, error);
+      // Remove from processors and restore direct connection
+      connectedProcessors.current.delete(id);
+      restoreDirectConnection();
     }
   };
 
-  const disconnectFromChain = (node: AudioNode) => {
+  const disconnectFromChain = (processorId: string) => {
     try {
-      console.log('Disconnecting node from audio chain...');
-      node.disconnect();
-      connectedNodes.current.delete(node);
+      console.log(`Disconnecting processor ${processorId}...`);
       
-      // Restore direct connection if no other nodes are connected
-      if (connectedNodes.current.size === 0 && analyserNode && masterGainNode) {
-        try {
-          // Ensure clean reconnection
-          analyserNode.disconnect();
-          analyserNode.connect(masterGainNode);
-          console.log('Restored direct analyser->masterGain connection');
-        } catch (e) {
-          console.warn('Failed to restore direct connection:', e);
-        }
+      if (connectedProcessors.current.has(processorId)) {
+        connectedProcessors.current.delete(processorId);
+        rebuildAudioChain();
+        console.log(`Processor ${processorId} disconnected successfully`);
       }
-      console.log('Node disconnected successfully');
     } catch (error) {
-      console.error('Failed to disconnect node from chain:', error);
+      console.error(`Failed to disconnect processor ${processorId}:`, error);
+    }
+  };
+
+  const rebuildAudioChain = () => {
+    if (!analyserNode || !masterGainNode) return;
+    
+    try {
+      // Disconnect everything first
+      analyserNode.disconnect();
+      connectedProcessors.current.forEach(({ input, output }) => {
+        try {
+          input.disconnect();
+          if (output !== input) output.disconnect();
+        } catch (e) {
+          // Node might already be disconnected
+        }
+      });
+      
+      // If no processors, connect directly
+      if (connectedProcessors.current.size === 0) {
+        analyserNode.connect(masterGainNode);
+        console.log('Restored direct analyser->masterGain connection');
+        return;
+      }
+      
+      // Build chain: analyser -> processor1 -> processor2 -> ... -> masterGain
+      const processors = Array.from(connectedProcessors.current.values());
+      let currentOutput: AudioNode = analyserNode;
+      
+      processors.forEach(({ input, output }, index) => {
+        currentOutput.connect(input);
+        currentOutput = output;
+      });
+      
+      // Connect the last processor to master gain
+      currentOutput.connect(masterGainNode);
+      
+      console.log(`Audio chain rebuilt with ${processors.length} processors`);
+      
+    } catch (error) {
+      console.error('Failed to rebuild audio chain:', error);
+      restoreDirectConnection();
+    }
+  };
+
+  const restoreDirectConnection = () => {
+    try {
+      if (analyserNode && masterGainNode) {
+        analyserNode.disconnect();
+        analyserNode.connect(masterGainNode);
+        console.log('Restored direct connection as fallback');
+      }
+    } catch (error) {
+      console.error('Failed to restore direct connection:', error);
     }
   };
 
   const resetAudioBus = () => {
-    // Disconnect all connected nodes first
+    // Clear all connected processors
+    connectedProcessors.current.clear();
+    
+    // Disconnect all connected nodes
     connectedNodes.current.forEach(node => {
       try {
         node.disconnect();
@@ -223,7 +260,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
         analyserNode.connect(masterGainNode);
         masterGainNode.connect(audioContext!.destination);
         
-        console.log('Audio bus reset successfully');
+        console.log('Audio bus reset successfully - all processors disconnected');
       } catch (error) {
         console.warn('Failed to reset audio bus connections:', error);
       }
@@ -287,6 +324,13 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     }
   };
 
+  const getAnalyserData = () => {
+    return {
+      analyser: analyserNode,
+      isConnected: analyserNode !== null && audioContext !== null && audioContext.state === 'running'
+    };
+  };
+
   const value = {
     audioContext,
     sourceNode,
@@ -296,6 +340,7 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
     disconnectFromChain,
     resetAudioBus,
     initializeOnUserAction,
+    getAnalyserData,
   };
 
   return (

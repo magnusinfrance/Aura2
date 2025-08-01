@@ -133,7 +133,7 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({
   };
 
   const updateEffectChain = () => {
-    if (!audioContext || !masterGainNode || !outputGainRef.current || !analyserNode) {
+    if (!audioContext || !outputGainRef.current) {
       console.log('Missing required audio nodes for effects');
       return;
     }
@@ -161,68 +161,71 @@ export const EnhancedAudioEffects: React.FC<EnhancedAudioEffectsProps> = ({
       const anyEffectsEnabled = reverbEnabled || delayEnabled || echoEnabled || compressionEnabled;
       
       if (!anyEffectsEnabled) {
-        // No effects enabled - ensure direct connection
-        console.log('No effects enabled, restoring direct connection');
+        // No effects enabled - disconnect from audio chain
+        console.log('No effects enabled, disconnecting from chain');
+        disconnectFromChain('audioEffects');
         return;
       }
 
-      // Use analyser as input for effects
-      let inputNode = analyserNode;
+      // Create a mixer node that will receive all the effect outputs
+      const mixerNode = audioContext.createGain();
+      mixerNode.gain.value = 1.0;
       
-      // Create wet paths for effects
+      // Create wet paths for effects and connect them to the mixer
       const wetNodes: AudioNode[] = [];
 
-      if (inputNode) {
-        // Reverb path
-        if (reverbEnabled && reverbNodeRef.current && reverbGainRef.current) {
-          inputNode.connect(reverbNodeRef.current);
-          reverbNodeRef.current.connect(reverbGainRef.current);
-          reverbGainRef.current.gain.value = reverbAmount[0] / 100;
-          wetNodes.push(reverbGainRef.current);
-        }
+      // We need an input node that connects to all effects
+      const inputGain = audioContext.createGain();
+      inputGain.gain.value = 1.0;
 
-        // Delay path
-        if (delayEnabled && delayNodeRef.current && delayGainRef.current && delayFeedbackRef.current) {
-          inputNode.connect(delayNodeRef.current);
-          delayNodeRef.current.connect(delayGainRef.current);
-          delayNodeRef.current.delayTime.value = delayTime[0];
-          delayFeedbackRef.current.gain.value = delayFeedback[0] / 100;
-          delayGainRef.current.gain.value = 0.5;
-          wetNodes.push(delayGainRef.current);
-        }
-
-        // Echo path (separate from delay)
-        if (echoEnabled && echoNodeRef.current && echoGainRef.current && echoFeedbackRef.current) {
-          inputNode.connect(echoNodeRef.current);
-          echoNodeRef.current.connect(echoGainRef.current);
-          echoNodeRef.current.delayTime.value = echoTime[0];
-          echoFeedbackRef.current.gain.value = echoFeedback[0] / 100;
-          echoGainRef.current.gain.value = 0.4;
-          wetNodes.push(echoGainRef.current);
-        }
-
-        // Connect dry path to output
-        inputNode.connect(outputGainRef.current);
+      // Reverb path
+      if (reverbEnabled && reverbNodeRef.current && reverbGainRef.current) {
+        inputGain.connect(reverbNodeRef.current);
+        reverbNodeRef.current.connect(reverbGainRef.current);
+        reverbGainRef.current.gain.value = reverbAmount[0] / 100;
+        reverbGainRef.current.connect(mixerNode);
+        wetNodes.push(reverbGainRef.current);
       }
+
+      // Delay path
+      if (delayEnabled && delayNodeRef.current && delayGainRef.current && delayFeedbackRef.current) {
+        inputGain.connect(delayNodeRef.current);
+        delayNodeRef.current.connect(delayGainRef.current);
+        delayNodeRef.current.delayTime.value = delayTime[0];
+        delayFeedbackRef.current.gain.value = delayFeedback[0] / 100;
+        delayGainRef.current.gain.value = 0.5;
+        delayGainRef.current.connect(mixerNode);
+        wetNodes.push(delayGainRef.current);
+      }
+
+      // Echo path (separate from delay)
+      if (echoEnabled && echoNodeRef.current && echoGainRef.current && echoFeedbackRef.current) {
+        inputGain.connect(echoNodeRef.current);
+        echoNodeRef.current.connect(echoGainRef.current);
+        echoNodeRef.current.delayTime.value = echoTime[0];
+        echoFeedbackRef.current.gain.value = echoFeedback[0] / 100;
+        echoGainRef.current.gain.value = 0.4;
+        echoGainRef.current.connect(mixerNode);
+        wetNodes.push(echoGainRef.current);
+      }
+
+      // Connect dry signal to mixer as well
+      inputGain.connect(mixerNode);
+
+      // Connect mixer to output gain
+      mixerNode.connect(outputGainRef.current);
       
-      // Connect wet paths to output
-      wetNodes.forEach(node => {
-        if (outputGainRef.current) {
-          node.connect(outputGainRef.current);
-        }
-      });
-
-      // Connect through shared audio chain only if we have nodes to connect
-      if (outputGainRef.current) {
-        if (compressionEnabled && compressorRef.current) {
-          // First connect to compressor, then to master gain
-          outputGainRef.current.connect(compressorRef.current);
-          compressorRef.current.connect(masterGainNode);
-        } else {
-          // Connect directly to master gain
-          outputGainRef.current.connect(masterGainNode);
-        }
+      // Final output processing
+      let finalOutput: AudioNode = outputGainRef.current;
+      
+      if (compressionEnabled && compressorRef.current) {
+        // Connect through compressor
+        outputGainRef.current.connect(compressorRef.current);
+        finalOutput = compressorRef.current;
       }
+
+      // Connect the effects chain to the audio processor
+      connectToChain(inputGain, finalOutput, 'audioEffects');
       
       console.log('Effect chain updated successfully');
     } catch (error) {
