@@ -77,30 +77,27 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
   };
 
   const connectEqualizer = () => {
-    if (!audioContext || !gainNodeRef.current || filtersRef.current.length === 0) return;
+    if (!connectToChain || !disconnectFromChain) return;
 
     try {
-      // Always disconnect all filters first
-      filtersRef.current.forEach(filter => {
-        try {
-          filter.disconnect();
-        } catch (e) {
-          // Filter may not be connected
-        }
-      });
-      
-      // Also disconnect the gain node
-      try {
-        gainNodeRef.current.disconnect();
-      } catch (e) {
-        // May not be connected
-      }
-
-      if (isEnabled) {
-        // Create the EQ chain: first filter -> ... -> last filter -> gain node
-        let currentNode: AudioNode = filtersRef.current[0];
+      if (isEnabled && audioContext && gainNodeRef.current && filtersRef.current.length === 7) {
+        // Always disconnect all filters first
+        filtersRef.current.forEach(filter => {
+          try {
+            filter.disconnect();
+          } catch (e) {
+            // Filter may not be connected
+          }
+        });
         
-        // Connect filters in series
+        // Also disconnect the gain node
+        try {
+          gainNodeRef.current.disconnect();
+        } catch (e) {
+          // May not be connected
+        }
+
+        // Create the EQ chain: first filter -> ... -> last filter -> gain node
         for (let i = 1; i < filtersRef.current.length; i++) {
           filtersRef.current[i - 1].connect(filtersRef.current[i]);
         }
@@ -110,6 +107,11 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
         
         // Use the shared audio processor to insert our EQ chain
         connectToChain(filtersRef.current[0], gainNodeRef.current);
+      } else {
+        // Disconnect equalizer when disabled
+        if (filtersRef.current.length > 0) {
+          disconnectFromChain(filtersRef.current[0]);
+        }
       }
     } catch (error) {
       console.warn('EQ connection failed:', error);
