@@ -77,11 +77,13 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
   };
 
   const connectEqualizer = () => {
-    if (!connectToChain || !disconnectFromChain) return;
+    if (!connectToChain || !disconnectFromChain || !audioContext) return;
 
     try {
-      if (isEnabled && audioContext && gainNodeRef.current && filtersRef.current.length === 7) {
-        // Always disconnect all filters first
+      if (isEnabled && gainNodeRef.current && filtersRef.current.length === 7) {
+        console.log('Connecting equalizer chain...');
+        
+        // Always disconnect all filters first to clean up
         filtersRef.current.forEach(filter => {
           try {
             filter.disconnect();
@@ -107,14 +109,23 @@ export const EnhancedEqualizer: React.FC<EnhancedEqualizerProps> = ({ audioConte
         
         // Use the shared audio processor to insert our EQ chain
         connectToChain(filtersRef.current[0], gainNodeRef.current);
+        console.log('Equalizer connected successfully');
       } else {
+        console.log('Disconnecting equalizer...');
         // Disconnect equalizer when disabled
         if (filtersRef.current.length > 0) {
-          disconnectFromChain(filtersRef.current[0]);
+          try {
+            disconnectFromChain(filtersRef.current[0]);
+            console.log('Equalizer disconnected successfully');
+          } catch (error) {
+            console.warn('Failed to disconnect equalizer:', error);
+          }
         }
       }
     } catch (error) {
-      console.warn('EQ connection failed:', error);
+      console.error('EQ connection failed:', error);
+      // Try to restore audio connection on failure
+      resetAudioBus();
     }
   };
 

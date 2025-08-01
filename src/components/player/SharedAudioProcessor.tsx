@@ -130,19 +130,27 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
   };
 
   const connectToChain = (inputNode: AudioNode, outputNode?: AudioNode) => {
-    if (!masterGainNode || !analyserNode) return;
+    if (!masterGainNode || !analyserNode) {
+      console.warn('Missing required nodes for audio chain connection');
+      return;
+    }
     
     try {
       // Check if connection already exists
       if (connectedNodes.current.has(inputNode)) {
+        console.log('Node already connected to chain, skipping...');
         return;
       }
       
-      // Safely disconnect existing connections
+      console.log('Connecting node to audio chain...');
+      
+      // Safely disconnect existing direct connection between analyser and masterGain
       try {
         analyserNode.disconnect(masterGainNode);
+        console.log('Disconnected direct analyser->masterGain connection');
       } catch (e) {
         // Connection might not exist, continue
+        console.log('No direct connection to disconnect');
       }
       
       // Connect new chain: analyser -> inputNode -> (outputNode || masterGain)
@@ -150,34 +158,46 @@ export const SharedAudioProcessorProvider: React.FC<SharedAudioProcessorProvider
       inputNode.connect(outputNode || masterGainNode);
       connectedNodes.current.add(inputNode);
       
+      console.log('Node connected to audio chain successfully');
+      
     } catch (error) {
-      console.warn('Failed to connect node to chain:', error);
+      console.error('Failed to connect node to chain:', error);
       // Restore direct connection as fallback
       try {
         if (analyserNode && masterGainNode) {
+          // First disconnect everything to clean up
+          analyserNode.disconnect();
+          
+          // Reconnect directly
           analyserNode.connect(masterGainNode);
+          console.log('Fallback connection restored');
         }
       } catch (fallbackError) {
-        console.warn('Fallback connection failed:', fallbackError);
+        console.error('Fallback connection failed:', fallbackError);
       }
     }
   };
 
   const disconnectFromChain = (node: AudioNode) => {
     try {
+      console.log('Disconnecting node from audio chain...');
       node.disconnect();
       connectedNodes.current.delete(node);
       
       // Restore direct connection if no other nodes are connected
       if (connectedNodes.current.size === 0 && analyserNode && masterGainNode) {
         try {
+          // Ensure clean reconnection
+          analyserNode.disconnect();
           analyserNode.connect(masterGainNode);
+          console.log('Restored direct analyser->masterGain connection');
         } catch (e) {
-          // Connection might already exist
+          console.warn('Failed to restore direct connection:', e);
         }
       }
+      console.log('Node disconnected successfully');
     } catch (error) {
-      console.warn('Failed to disconnect node from chain:', error);
+      console.error('Failed to disconnect node from chain:', error);
     }
   };
 
